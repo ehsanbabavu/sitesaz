@@ -245,6 +245,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
   const userMenuItems = [{ path: "/", label: "پیشخوان", icon: Home }];
 
+  const level2MenuItems = [
+    { path: "/products", label: "محصولات من", icon: List },
+    { path: "/add-product", label: "افزودن محصول", icon: Plus },
+    { path: "/received-orders", label: "سفارشات من", icon: Package },
+    { path: "/transactions", label: "تراکنش‌ها", icon: DollarSign },
+  ];
+
   return (
     <aside className="w-64 bg-card border-l border-border flex flex-col sidebar-transition" data-testid="sidebar-navigation">
       <div className="p-6 border-b border-border" data-testid="section-logo">
@@ -259,6 +266,17 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       <nav className="flex-1 p-4 custom-scrollbar overflow-y-auto" data-testid="nav-main-menu">
         <ul className="space-y-1">
           {user?.role !== "admin" && userMenuItems.map((item) => (
+            <li key={item.path}>
+              <Link href={item.path}>
+                <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
+                  <item.icon className="w-5 h-5 ml-2" />
+                  {item.label}
+                </Button>
+              </Link>
+            </li>
+          ))}
+
+          {user?.role === "user_level_2" && level2MenuItems.map((item) => (
             <li key={item.path}>
               <Link href={item.path}>
                 <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
