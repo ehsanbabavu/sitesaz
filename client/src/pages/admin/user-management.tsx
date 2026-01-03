@@ -164,7 +164,6 @@ export default function UserManagement() {
       username: formData.get("username") as string,
       firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName") as string,
-      email: formData.get("username") as string + "@example.com",
       phone: formData.get("phone") as string,
       password: password,
       role: formData.get("role") as string,

@@ -293,10 +293,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userData = {
-        ...req.body,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         username: username,
+        phone: req.body.phone,
+        password: req.body.password,
         role: req.body.role || "user_level_1",
-        // اگر شماره واتس‌اپ نیومده، از شماره تلفن استفاده کن
+        email: req.body.email || undefined,
         whatsappNumber: req.body.whatsappNumber || req.body.phone
       };
       
