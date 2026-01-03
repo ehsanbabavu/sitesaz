@@ -302,7 +302,7 @@ function Router() {
       <Route path="/financial" component={() => <AdminOrLevel1OrLevel2Route component={WithLayout(Financial, "امور مالی")} />} />
       <Route path="/transactions" component={() => <AdminOrLevel1Route component={WithLayout(SuccessfulTransactions, "مدیریت تراکنش‌ها")} />} />
       <Route path="/crypto-transactions" component={() => <PluginAwareAdminRoute component={CryptoTransactions} pluginName="crypto-transactions" />} />
-      <Route path="/customer-chats" component={() => <Level1Route component={WithLayout(CustomerChats, "مدیریت چت با مشتریان")} />} />
+      <Route path="/customer-chats" component={() => <AdminOrLevel1Route component={WithLayout(CustomerChats, "مدیریت چت با مشتریان")} />} />
       <Route path="/shipping-settings" component={() => <AdminOrLevel1Route component={ShippingSettings} />} />
       <Route path="/vat-settings" component={() => <AdminOrLevel1Route component={VatSettings} />} />
       <Route path="/bank-card" component={() => <AdminOrLevel1Route component={BankCard} />} />
