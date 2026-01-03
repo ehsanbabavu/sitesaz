@@ -230,6 +230,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   ];
 
   const usersManagementItems = [
+    { path: "/", label: "پیشخوان یوزرات", icon: Home },
     { path: "/users", label: "کاربران", icon: Users },
     ...(isSubscriptionPluginEnabled ? [{ path: "/subscriptions", label: "اشتراک‌ها", icon: Crown }] : []),
   ];
@@ -272,7 +273,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       
       <nav className="flex-1 p-4 custom-scrollbar overflow-y-auto" data-testid="nav-main-menu">
         <ul className="space-y-1">
-          {user?.role !== "admin" && userMenuItems.map((item) => (
+          {user?.role === "user_level_2" && userMenuItems.map((item) => (
             <li key={item.path}>
               <Link href={item.path}>
                 <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
