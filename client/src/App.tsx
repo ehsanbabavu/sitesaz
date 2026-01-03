@@ -291,7 +291,7 @@ function Router() {
       <Route path="/whatsapp-chats" component={() => <AdminOrLevel1Route component={WhatsAppChats} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/send-ticket" component={() => <ProtectedRoute component={SendTicket} />} />
-      <Route path="/my-tickets" component={() => <ProtectedRoute component={MyTickets} />} />
+      <Route path="/my-tickets" component={() => <AdminOrLevel1Route component={TicketManagement} />} />
       <Route path="/add-product" component={() => <ProtectedRoute component={AddProduct} />} />
       <Route path="/products" component={() => <ProtectedRoute component={ProductList} />} />
       <Route path="/sub-users" component={() => <Level1Route component={SubUsers} />} />

@@ -1261,7 +1261,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tickets", authenticateToken, async (req: AuthRequest, res) => {
     try {
       let tickets;
-      if (req.user!.role === "admin") {
+      // مدیر و کاربر سطح ۱ هر دو تیکت‌های کل سیستم را ببینند
+      if (req.user!.role === "admin" || req.user!.role === "user_level_1") {
         tickets = await storage.getAllTickets();
       } else {
         tickets = await storage.getTicketsByUser(req.user!.id);
@@ -1306,7 +1307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/tickets/:id/reply", authenticateToken, requireAdmin, async (req, res) => {
+  app.put("/api/tickets/:id/reply", authenticateToken, requireAdminOrLevel1, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -1352,7 +1353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/tickets/:id", authenticateToken, requireAdmin, async (req, res) => {
+  app.delete("/api/tickets/:id", authenticateToken, requireAdminOrLevel1, async (req, res) => {
     try {
       const { id } = req.params;
       const success = await storage.deleteTicket(id);

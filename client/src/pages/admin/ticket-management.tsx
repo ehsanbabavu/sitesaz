@@ -180,10 +180,13 @@ export default function TicketManagement() {
     let filtered = tickets.filter(ticket => {
       // Filter by search query
       const searchLower = searchQuery.toLowerCase();
+      const user = getUserForTicket(ticket.userId);
       const matchesSearch = !searchQuery || 
         ticket.subject.toLowerCase().includes(searchLower) ||
         ticket.message.toLowerCase().includes(searchLower) ||
-        getUserForTicket(ticket.userId)?.email?.toLowerCase().includes(searchLower);
+        user?.firstName?.toLowerCase().includes(searchLower) ||
+        user?.lastName?.toLowerCase().includes(searchLower) ||
+        user?.username?.toLowerCase().includes(searchLower);
 
       // Filter by tab
       const matchesTab = activeTab === "all" || ticket.status === activeTab;
