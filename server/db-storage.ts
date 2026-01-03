@@ -51,16 +51,13 @@ export class DbStorage implements IStorage {
         .where(eq(users.username, "ehsan"))
         .limit(1);
 
+      const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
       if (existingAdmin.length === 0) {
-        // Use environment variable for admin password, fallback to default password
-        const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
-        if (!process.env.ADMIN_PASSWORD) {
-          console.log("🔑 کاربر ادمین ایجاد شد - نام کاربری: ehsan");
-          console.log("🔑 رمز عبور پیش‌فرض: admin123");
-          console.log("⚠️  برای تغییر رمز عبور، متغیر ADMIN_PASSWORD را تنظیم کنید");
-        }
+        console.log("🔑 کاربر ادمین ایجاد شد - نام کاربری: ehsan");
+        console.log(`🔑 رمز عبور: ${adminPassword}`);
         
-        const hashedPassword = await bcrypt.hash(adminPassword, 10);
         await db.insert(users).values({
           username: "ehsan",
           firstName: "احسان",
@@ -70,6 +67,12 @@ export class DbStorage implements IStorage {
           password: hashedPassword,
           role: "admin",
         });
+      } else {
+        // Force update password to match environment variable or default
+        await db.update(users)
+          .set({ password: hashedPassword })
+          .where(eq(users.username, "ehsan"));
+        console.log(`✅ رمز عبور کاربر ehsan به "${adminPassword}" تغییر یافت.`);
       }
     } catch (error) {
       console.error("Error initializing admin user:", error);
