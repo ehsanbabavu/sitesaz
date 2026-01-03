@@ -285,9 +285,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "نام کاربری یا شماره تلفن برای ثبت‌نام الزامی است" });
       }
 
+      // Check if username or phone already exists
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        // اگر نام کاربری (شماره تلفن) تکراری بود، پسوند تصادفی اضافه کن یا خطا بده
+        return res.status(400).json({ message: "این شماره تلفن قبلاً در سیستم ثبت شده است" });
+      }
+
       const userData = {
         ...req.body,
         username: username,
+        role: req.body.role || "user_level_1",
         // اگر شماره واتس‌اپ نیومده، از شماره تلفن استفاده کن
         whatsappNumber: req.body.whatsappNumber || req.body.phone
       };
@@ -303,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Hash password
-      const hashedPassword = await bcrypt.hash(normalizeDigits(validatedData.password!), 10);
+      const hashedPassword = await bcrypt.hash(normalizeDigits(validatedData.password || '123456'), 10);
       
       const user = await storage.createUser({
         ...validatedData,
@@ -617,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Hash password
-      const hashedPassword = await bcrypt.hash(normalizeDigits(validatedData.password!), 10);
+      const hashedPassword = await bcrypt.hash(normalizeDigits(validatedData.password || '123456'), 10);
       
       const user = await storage.createUser({
         ...validatedData,

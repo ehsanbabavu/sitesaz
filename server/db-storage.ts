@@ -461,8 +461,16 @@ export class DbStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(insertUser).returning();
-    return result[0];
+    try {
+      const result = await db.insert(users).values(insertUser).returning();
+      return result[0];
+    } catch (error: any) {
+      console.error("❌ Error in createUser database operation:", error);
+      if (error.code === '23505' || error.message?.includes('unique')) {
+        throw new Error("نام کاربری یا شماره تلفن تکراری است");
+      }
+      throw error;
+    }
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
