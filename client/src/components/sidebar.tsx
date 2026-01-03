@@ -246,10 +246,18 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const userMenuItems = [{ path: "/", label: "پیشخوان", icon: Home }];
 
   const level2MenuItems = [
+    { path: "/", label: "پیشخوان", icon: Home },
     { path: "/products", label: "محصولات من", icon: List },
     { path: "/add-product", label: "افزودن محصول", icon: Plus },
     { path: "/received-orders", label: "سفارشات من", icon: Package },
+    { path: "/cart", label: "سبد خرید", icon: ShoppingCart },
+    { path: "/addresses", label: "آدرس‌ها", icon: MapPin },
+    { path: "/financial", label: "امور مالی", icon: Wallet },
     { path: "/transactions", label: "تراکنش‌ها", icon: DollarSign },
+    { path: "/chat-with-seller", label: "چت با فروشنده", icon: MessageCircle },
+    { path: "/my-tickets", label: "تیکت‌های من", icon: Ticket },
+    { path: "/send-ticket", label: "ارسال تیکت", icon: Send },
+    { path: "/profile", label: "پروفایل", icon: User },
   ];
 
   return (
