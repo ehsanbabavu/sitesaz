@@ -221,6 +221,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
     { path: "/transactions", label: "تراکنش‌ها", icon: DollarSign },
     ...(isCryptoPluginEnabled ? [{ path: "/crypto-transactions", label: "ارز دیجیتال", icon: Wallet }] : []),
     { path: "/customer-chats", label: "چت با مشتریان", icon: MessageCircle },
+    { path: "/my-tickets", label: "تیکت‌ها", icon: Ticket },
   ];
 
   const inventoryItems = [
@@ -252,7 +253,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
     { path: "/addresses", label: "آدرس‌ها", icon: MapPin },
     { path: "/financial", label: "امور مالی", icon: Wallet },
     { path: "/chat-with-seller", label: "چت با فروشنده", icon: MessageCircle },
-    { path: "/my-tickets", label: "تیکت‌های من", icon: Ticket },
     { path: "/send-ticket", label: "ارسال تیکت", icon: Send },
     { path: "/profile", label: "پروفایل", icon: User },
   ];
