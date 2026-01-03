@@ -28,7 +28,8 @@ export class TGJUService {
     const priceMatch = html.match(/قیمت\s*ریالی[\s\S]*?<td[^>]*>\s*([\d,]+)\s*<\/td>/i);
     
     if (!priceMatch || !priceMatch[1]) {
-      throw new Error(`قیمت ${cryptoName} در صفحه یافت نشد`);
+      console.warn(`⚠️ قیمت ${cryptoName} در صفحه یافت نشد، استفاده از قیمت ۰`);
+      return 0;
     }
 
     const priceStr = priceMatch[1].replace(/,/g, '');
