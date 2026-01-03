@@ -1,4 +1,5 @@
 import React from 'react';
+import heroImage from '@assets/image_1765732617867_1767460337176.jpeg';
 
 const Hero: React.FC = () => {
     return (
@@ -13,8 +14,8 @@ const Hero: React.FC = () => {
                             یک لندینگ پیج قدرتمند و زیبا برای نمایش محصول شما و تبدیل بازدیدکنندگان به کاربران راضی.
                         </p>
                     </div>
-                    <div className="w-full lg:w-1/2 mt-10 lg:mt-0 flex justify-center">
-                       <img src="https://atiyehahmadi.ir/apper-demo/all-demo/03-app-landing-page-wave-animation/images/header-mobile.png" alt="App Screenshot" className="max-w-xs md:max-w-sm transform animate-float" />
+                    <div className="w-full lg:w-1/2 mt-10 lg:mt-0 flex justify-center h-[500px]">
+                       <img src={heroImage} alt="App Screenshot" className="h-full w-auto transform animate-float rounded-3xl object-contain" />
                     </div>
                 </div>
             </div>

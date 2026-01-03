@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import ariyaBotImage from "@assets/generated_images/colorful_ai_ariya_bot_assistant_illustration.png";
+import ariyaBotImage from "@assets/image_1765732617867_1767460337176.jpeg";
 import robotCharacterImage from "@assets/generated_images/robot_character.jpg";
 import robotCharacterVideosImage from "@assets/generated_images/robot_character_videos.jpg";
 import robotCharacterFaqImage from "@assets/generated_images/robot_character_faq.jpg";
@@ -607,7 +607,7 @@ export default function Home() {
   const [isShaking, setIsShaking] = useState(false);
   const prevMessagesCount = useRef(0);
   const shakeTimeoutRef = useRef<NodeJS.Timeout>();
-  const [isGuestChatsPluginEnabled, setIsGuestChatsPluginEnabled] = useState(false);
+  const [isGuestChatsPluginEnabled, setIsGuestChatsPluginEnabled] = useState(true);
 
   useEffect(() => {
     fetch('/api/plugins/guest-chats/public-status')
@@ -1008,13 +1008,13 @@ export default function Home() {
                   className="absolute inset-0 rounded-3xl -z-10 bg-gradient-to-l from-purple-400/20 to-pink-400/20 blur-3xl"
                  />
                  
-                 <div className="relative bg-white rounded-3xl p-2 shadow-2xl border border-white/60 backdrop-blur-sm">
+                 <div className="relative bg-white rounded-3xl p-2 shadow-2xl border border-white/60 backdrop-blur-sm max-w-sm mx-auto">
                    <motion.img 
                     src={ariyaBotImage}
                     alt="Ariya Bot - AI Assistant" 
                     animate={{
-                      y: [0, -20, 0],
-                      rotate: [-2, 2, -2]
+                      y: [0, -10, 0],
+                      rotate: [-1, 1, -1]
                     }}
                     transition={{
                       repeat: Infinity,

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import loginVideo from "@assets/YouCut_20250930_005437820_1759181322984.mp4";
+import loginVideo from "@assets/rakhsh_1767459571567.mp4";
 
 export default function Login() {
   const [emailOrUsername, setEmailOrUsername] = useState("");
@@ -128,9 +128,8 @@ export default function Login() {
             loop
             muted
             playsInline
-            className="max-w-md w-full mx-auto mb-6"
+            className="h-[80vh] w-auto mx-auto mb-6 object-cover"
           />
-          <h2 className="text-gray-900 text-2xl font-bold">به سیستم جامع مدیریت کاربران آریا بات خوش امدید</h2>
         </div>
       </div>
     </div>

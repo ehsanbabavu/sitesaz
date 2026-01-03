@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import loginVideo from "@assets/YouCut_20250930_005437820_1759181322984.mp4";
+import loginVideo from "@assets/rakhsh_1767459571567.mp4";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -182,10 +182,8 @@ export default function Register() {
             loop
             muted
             playsInline
-            className="max-w-md w-full mx-auto mb-6"
+            className="h-[80vh] w-auto mx-auto mb-6 object-cover"
           />
-          <h2 className="text-gray-900 text-3xl font-bold mb-3">به جمع ما بپیوندید!</h2>
-          <p className="text-gray-700 text-base">حساب کاربری خود را ایجاد کنید</p>
         </div>
       </div>
     </div>
