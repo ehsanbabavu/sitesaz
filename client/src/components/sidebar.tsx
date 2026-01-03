@@ -247,9 +247,9 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
   const level2MenuItems = [
     { path: "/", label: "پیشخوان", icon: Home },
-    { path: "/products", label: "محصولات من", icon: List },
+    { path: "/products", label: "محصولات", icon: List },
     { path: "/add-product", label: "افزودن محصول", icon: Plus },
-    { path: "/received-orders", label: "سفارشات من", icon: Package },
+    { path: "/received-orders", label: "سفارشات", icon: Package },
     { path: "/cart", label: "سبد خرید", icon: ShoppingCart },
     { path: "/addresses", label: "آدرس‌ها", icon: MapPin },
     { path: "/financial", label: "امور مالی", icon: Wallet },
@@ -284,7 +284,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </li>
           ))}
 
-          {user?.role === "user_level_2" && level2MenuItems.map((item) => (
+          {(user?.role === "user_level_1" || user?.role === "user_level_2") && level2MenuItems.map((item) => (
             <li key={item.path}>
               <Link href={item.path}>
                 <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
