@@ -235,6 +235,28 @@ function WithLayout(Component: React.ComponentType, title: string) {
   );
 }
 
+function AdminOrLevel1OrLevel2Route({ component: Component }: { component: React.ComponentType }) {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-lg">در حال بارگذاری...</div>
+    </div>;
+  }
+  
+  if (!user) {
+    return <Login />;
+  }
+  
+  if (user.role !== "admin" && user.role !== "user_level_1" && user.role !== "user_level_2") {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-lg text-destructive">دسترسی محدود</div>
+    </div>;
+  }
+  
+  return <Component />;
+}
+
 function Router() {
   const { user } = useAuth();
   
@@ -273,18 +295,18 @@ function Router() {
       <Route path="/add-product" component={() => <ProtectedRoute component={AddProduct} />} />
       <Route path="/products" component={() => <ProtectedRoute component={ProductList} />} />
       <Route path="/sub-users" component={() => <Level1Route component={SubUsers} />} />
-      <Route path="/cart" component={() => <Level2Route component={Cart} />} />
-      <Route path="/addresses" component={() => <Level2Route component={Addresses} />} />
-      <Route path="/orders" component={() => <Level2Route component={WithLayout(Orders, "سفارشات من")} />} />
+      <Route path="/cart" component={() => <AdminOrLevel1OrLevel2Route component={Cart} />} />
+      <Route path="/addresses" component={() => <AdminOrLevel1OrLevel2Route component={Addresses} />} />
+      <Route path="/orders" component={() => <AdminOrLevel1OrLevel2Route component={WithLayout(Orders, "سفارشات من")} />} />
       <Route path="/received-orders" component={() => <AdminOrLevel1Route component={WithLayout(ReceivedOrders, "سفارشات دریافتی")} />} />
-      <Route path="/financial" component={() => <Level2Route component={WithLayout(Financial, "امور مالی")} />} />
+      <Route path="/financial" component={() => <AdminOrLevel1OrLevel2Route component={WithLayout(Financial, "امور مالی")} />} />
       <Route path="/transactions" component={() => <AdminOrLevel1Route component={WithLayout(SuccessfulTransactions, "مدیریت تراکنش‌ها")} />} />
       <Route path="/crypto-transactions" component={() => <PluginAwareAdminRoute component={CryptoTransactions} pluginName="crypto-transactions" />} />
       <Route path="/customer-chats" component={() => <Level1Route component={WithLayout(CustomerChats, "مدیریت چت با مشتریان")} />} />
       <Route path="/shipping-settings" component={() => <AdminOrLevel1Route component={ShippingSettings} />} />
       <Route path="/vat-settings" component={() => <AdminOrLevel1Route component={VatSettings} />} />
       <Route path="/bank-card" component={() => <AdminOrLevel1Route component={BankCard} />} />
-      <Route path="/chat-with-seller" component={() => <Level2Route component={ChatWithSeller} />} />
+      <Route path="/chat-with-seller" component={() => <AdminOrLevel1OrLevel2Route component={ChatWithSeller} />} />
       <Route path="/faqs" component={() => <ProtectedRoute component={FaqsPage} />} />
       <Route path="/manage-faqs" component={() => <AdminOrLevel1Route component={ManageFaqsPage} />} />
       <Route path="/add-faq" component={() => <AdminOrLevel1Route component={AddFaqPage} />} />
