@@ -451,16 +451,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       </nav>
 
       <div className="p-4 border-t border-border">
-        <div className="flex items-center p-2 rounded-lg bg-muted/50 mb-4">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.profilePicture || ""} />
-            <AvatarFallback>{user?.firstName?.[0] || <User className="h-4 w-4" />}</AvatarFallback>
-          </Avatar>
-          <div className="mr-3 overflow-hidden">
-            <p className="text-sm font-medium text-foreground truncate">{user?.firstName} {user?.lastName}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.role === "admin" ? "مدیر سیستم" : "فروشنده"}</p>
-          </div>
-        </div>
         <Button variant="outline" size="sm" className="w-full justify-start text-destructive hover:bg-destructive/10" onClick={() => logout()}>
           <LogOut className="w-4 h-4 ml-2" />
           خروج
