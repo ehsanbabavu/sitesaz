@@ -2432,108 +2432,73 @@ export class DbStorage implements IStorage {
 
   async initializeDefaultPlugins(): Promise<void> {
     try {
-      const existingWhatsapp = await this.getPluginByName("whatsapp");
-      if (!existingWhatsapp) {
-        await db.insert(plugins).values({
+      const pluginsToInitialize = [
+        {
           name: "whatsapp",
           displayName: "واتس‌اپ",
           description: "ارسال و دریافت پیام از طریق واتس‌اپ، چت با مشتریان و ارسال پیام‌های اتوماتیک",
           icon: "MessageCircle",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default WhatsApp plugin initialized");
-      }
-
-      const existingVat = await this.getPluginByName("vat");
-      if (!existingVat) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "vat",
           displayName: "مالیات بر ارزش افزوده",
           description: "تنظیمات مالیات بر ارزش افزوده، اطلاعات شرکت و صدور فاکتور رسمی",
           icon: "Receipt",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default VAT plugin initialized");
-      }
-
-      const existingAi = await this.getPluginByName("ai");
-      if (!existingAi) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "ai",
           displayName: "هوش مصنوعی",
           description: "اتصال به سرویس‌های هوش مصنوعی مانند Gemini و Liara برای پاسخ‌دهی خودکار",
           icon: "Bot",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default AI plugin initialized");
-      }
-
-      const existingBackup = await this.getPluginByName("backup");
-      if (!existingBackup) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "backup",
           displayName: "پشتیبان‌گیری",
           description: "پشتیبان‌گیری و بازیابی دیتابیس، مدیریت حالت تعمیرات سایت",
           icon: "Database",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default Backup plugin initialized");
-      }
-
-      const existingCrypto = await this.getPluginByName("crypto-transactions");
-      if (!existingCrypto) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "crypto-transactions",
           displayName: "ارز دیجیتال",
           description: "مدیریت تراکنش‌های ارز دیجیتال، کیف پول‌های کریپتو و پرداخت با رمزارز",
           icon: "Wallet",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default Crypto Transactions plugin initialized");
-      }
-
-      const existingGuestChats = await this.getPluginByName("guest-chats");
-      if (!existingGuestChats) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "guest-chats",
           displayName: "چت مهمانان",
           description: "چت آنلاین با مهمانان سایت، پشتیبانی آنلاین و پاسخ‌دهی به سوالات کاربران",
           icon: "MessageSquare",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default Guest Chats plugin initialized");
-      }
-
-      const existingLoginLogs = await this.getPluginByName("login-logs");
-      if (!existingLoginLogs) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "login-logs",
           displayName: "لاگ ورود",
           description: "ثبت و مشاهده تاریخچه ورود کاربران به سیستم",
           icon: "History",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default Login Logs plugin initialized");
-      }
-
-      const existingEmail = await this.getPluginByName("email");
-      if (!existingEmail) {
-        await db.insert(plugins).values({
+        },
+        {
           name: "email",
           displayName: "ایمیل",
           description: "مدیریت و ارسال ایمیل‌ها، تنظیمات SMTP و نمونه‌های ایمیل",
           icon: "Mail",
-          isEnabled: true,
-          isBuiltIn: true,
-        });
-        console.log("✅ Default Email plugin initialized");
+        },
+        {
+          name: "subscriptions",
+          displayName: "اشتراک‌ها",
+          description: "مدیریت پلن‌های اشتراک و کاربران",
+          icon: "Crown",
+        },
+      ];
+
+      for (const pluginData of pluginsToInitialize) {
+        const existing = await this.getPluginByName(pluginData.name);
+        if (!existing) {
+          await db.insert(plugins).values({
+            ...pluginData,
+            isEnabled: true,
+            isBuiltIn: true,
+          });
+          console.log(`✅ Default ${pluginData.displayName} plugin initialized`);
+        }
       }
     } catch (error) {
       console.error("Error initializing default plugins:", error);
