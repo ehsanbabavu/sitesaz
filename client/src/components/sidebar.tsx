@@ -433,25 +433,17 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               )}
 
               <li className="pt-2">
-                <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full justify-start">
-                      <Settings className="w-4 h-4 ml-2" />
-                      تنظیمات
-                      <ChevronDown className={cn("w-4 h-4 mr-auto transition-transform", settingsOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mr-6 space-y-1">
-                    {settingsItems.map((item) => (
-                      <Link key={item.path} href={item.path}>
-                        <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start text-sm", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                          <item.icon className="w-3.5 h-3.5 ml-2" />
-                          {item.label}
-                        </Button>
-                      </Link>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
+                <span className="text-xs text-muted-foreground px-3 font-medium">تنظیمات سیستم</span>
+                <div className="mt-1 space-y-1">
+                  {settingsItems.map((item) => (
+                    <Link key={item.path} href={item.path}>
+                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
+                        <item.icon className="w-4 h-4 ml-2" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
               </li>
             </>
           )}
