@@ -246,7 +246,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const userMenuItems = [{ path: "/", label: "پیشخوان", icon: Home }];
 
   const level2MenuItems = [
-    { path: "/", label: "پیشخوان", icon: Home },
     { path: "/products", label: "محصولات", icon: List },
     { path: "/add-product", label: "افزودن محصول", icon: Plus },
     { path: "/received-orders", label: "سفارشات", icon: Package },
