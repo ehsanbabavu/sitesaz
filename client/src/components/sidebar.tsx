@@ -248,7 +248,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const level2MenuItems = [
     { path: "/products", label: "محصولات", icon: List },
     { path: "/add-product", label: "افزودن محصول", icon: Plus },
-    { path: "/received-orders", label: "سفارشات", icon: Package },
     { path: "/cart", label: "سبد خرید", icon: ShoppingCart },
     { path: "/addresses", label: "آدرس‌ها", icon: MapPin },
     { path: "/financial", label: "امور مالی", icon: Wallet },
