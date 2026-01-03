@@ -238,7 +238,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
     { path: "/shipping-settings", label: "ترابری", icon: Truck },
     ...(isVatPluginEnabled ? [{ path: "/vat-settings", label: "مالیات", icon: Receipt }] : []),
     { path: "/bank-card", label: "کارت بانکی", icon: CreditCard },
-    { path: "/manage-faqs", label: "سوالات متداول", icon: HelpCircle },
     ...(isAiPluginEnabled ? [{ path: "/ai-token", label: "هوش مصنوعی", icon: Bot }] : []),
     ...(isLoginLogsPluginEnabled ? [{ path: "/login-logs", label: "لاگ ورود", icon: History }] : []),
     ...(isBackupPluginEnabled ? [{ path: "/database-backup", label: "پشتیبان‌گیری", icon: Database }] : []),
@@ -373,6 +372,15 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     </Link>
                   ))}
                 </div>
+              </li>
+
+              <li className="pt-2">
+                <Link href="/manage-faqs">
+                  <Button variant={isActive("/manage-faqs") ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive("/manage-faqs") && "bg-primary text-primary-foreground")}>
+                    <HelpCircle className="w-4 h-4 ml-2" />
+                    سوالات متداول
+                  </Button>
+                </Link>
               </li>
 
               <li className="pt-2">
