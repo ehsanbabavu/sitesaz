@@ -610,6 +610,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get main admin user for chat functionality - accessible to all authenticated users
+  app.get("/api/users/admin-main", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const admin = allUsers.find(u => u.role === "admin");
+      
+      if (!admin) {
+        return res.status(404).json({ message: "مدیر سیستم یافت نشد" });
+      }
+      
+      // Return admin with password removed
+      res.json({
+        id: admin.id,
+        username: admin.username,
+        displayName: admin.displayName,
+        email: admin.email,
+        role: admin.role,
+        avatar: admin.avatar,
+      });
+    } catch (error) {
+      console.error("Error getting admin user:", error);
+      res.status(500).json({ message: "خطا در دریافت اطلاعات مدیر" });
+    }
+  });
+
   app.post("/api/users", authenticateToken, requireAdmin, async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);

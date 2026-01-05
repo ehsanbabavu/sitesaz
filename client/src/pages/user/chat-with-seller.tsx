@@ -30,20 +30,12 @@ export default function ChatWithSeller() {
     queryKey: ["/api/users/admin-main"],
     enabled: !!user,
     queryFn: async () => {
-      // Find the main administrator by fetching all users and filtering
-      const response = await createAuthenticatedRequest("/api/users");
-      if (!response.ok) return null;
-      const users: UserType[] = await response.json();
-      
-      // Look for the admin user specifically
-      const admin = users.find(u => u.role === "admin");
-      
-      if (!admin) {
-        console.error("Admin user not found in user list");
+      const response = await createAuthenticatedRequest("/api/users/admin-main");
+      if (!response.ok) {
+        console.error("Failed to fetch admin user");
         return null;
       }
-      
-      return admin;
+      return await response.json();
     },
     staleTime: 60000, // Cache for 1 minute
   });
@@ -90,11 +82,10 @@ export default function ChatWithSeller() {
       let adminId = parentUser?.id;
       
       if (!adminId) {
-        // Fallback: search for admin role in users list if parentUser not yet loaded
-        const response = await createAuthenticatedRequest("/api/users");
+        // Fallback: fetch admin directly if parentUser not yet loaded
+        const response = await createAuthenticatedRequest("/api/users/admin-main");
         if (response.ok) {
-          const users: UserType[] = await response.json();
-          const admin = users.find(u => u.role === "admin");
+          const admin = await response.json();
           adminId = admin?.id;
         }
       }
