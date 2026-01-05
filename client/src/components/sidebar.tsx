@@ -281,7 +281,18 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </li>
           ))}
 
-          {(user?.role === "user_level_1" || user?.role === "user_level_2") && level2MenuItems.map((item) => (
+          {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product"].includes(item.path)).map((item) => (
+            <li key={item.path}>
+              <Link href={item.path}>
+                <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
+                  <item.icon className="w-5 h-5 ml-2" />
+                  {item.label}
+                </Button>
+              </Link>
+            </li>
+          ))}
+
+          {user?.role === "user_level_2" && level2MenuItems.map((item) => (
             <li key={item.path}>
               <Link href={item.path}>
                 <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
