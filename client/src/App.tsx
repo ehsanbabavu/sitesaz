@@ -39,6 +39,7 @@ import Financial from "@/pages/user/financial";
 import SuccessfulTransactions from "@/pages/user/successful-transactions";
 import ChatWithSeller from "@/pages/user/chat-with-seller";
 import CustomerChats from "@/pages/level1/customer-chats";
+import SellerChats from "@/pages/admin/seller-chats";
 import ShippingSettings from "@/pages/level1/shipping-settings";
 import VatSettings from "@/pages/level1/vat-settings";
 import VitrinPage from "@/pages/vitrin";
@@ -278,6 +279,7 @@ function Router() {
       <Route path="/users" component={() => <AdminRoute component={UserManagement} />} />
       <Route path="/tickets" component={() => <AdminRoute component={TicketManagement} />} />
       <Route path="/guest-chats" component={() => <PluginAwareAdminRoute component={GuestChats} pluginName="guest-chats" />} />
+      <Route path="/seller-chats" component={() => <AdminRoute component={SellerChats} />} />
       <Route path="/plugins" component={() => <AdminRoute component={PluginsManagement} />} />
       <Route path="/subscriptions" component={() => <AdminRoute component={Subscriptions} />} />
       <Route path="/categories" component={() => <AdminOrLevel1Route component={Categories} />} />
