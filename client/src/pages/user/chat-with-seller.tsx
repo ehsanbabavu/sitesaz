@@ -41,7 +41,7 @@ export default function ChatWithSeller() {
   // Get chat messages between current user and admin
   const { data: chats = [], isLoading, refetch } = useQuery<ChatWithSender[]>({
     queryKey: ["/api/internal-chats", parentUser?.id],
-    enabled: !!user && !!parentUser?.id,
+    enabled: !!user?.id && !!parentUser?.id,
     queryFn: async () => {
       const response = await createAuthenticatedRequest("/api/internal-chats");
       if (!response.ok) {
@@ -50,8 +50,8 @@ export default function ChatWithSeller() {
       const allChats: ChatWithSender[] = await response.json();
       // Filter chats to only show conversation with admin
       return allChats.filter(chat => 
-        (chat.senderId === user.id && chat.receiverId === parentUser?.id) ||
-        (chat.senderId === parentUser?.id && chat.receiverId === user.id)
+        (chat.senderId === user?.id && chat.receiverId === parentUser?.id) ||
+        (chat.senderId === parentUser?.id && chat.receiverId === user?.id)
       );
     },
     refetchInterval: 5000, // Refresh every 5 seconds
