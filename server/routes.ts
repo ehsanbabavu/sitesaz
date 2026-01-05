@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
-import { insertUserSchema, insertSubUserSchema, insertTicketSchema, insertSubscriptionSchema, insertProductSchema, insertWhatsappSettingsSchema, insertSentMessageSchema, insertReceivedMessageSchema, insertAiTokenSettingsSchema, insertBlockchainSettingsSchema, insertUserSubscriptionSchema, insertCategorySchema, insertCartItemSchema, insertAddressSchema, updateAddressSchema, insertOrderSchema, insertOrderItemSchema, insertTransactionSchema, updateCategoryOrderSchema, ticketReplySchema, insertInternalChatSchema, insertFaqSchema, updateFaqSchema, maintenanceMode, type User, cryptoTransactions, emails, users, receivedMessages } from "@shared/schema";
+import { insertUserSchema, insertSubUserSchema, insertTicketSchema, insertSubscriptionSchema, insertProductSchema, insertWhatsappSettingsSchema, insertSentMessageSchema, insertReceivedMessageSchema, insertAiTokenSettingsSchema, insertBlockchainSettingsSchema, insertUserSubscriptionSchema, insertCategorySchema, insertCartItemSchema, insertAddressSchema, updateAddressSchema, insertOrderSchema, insertOrderItemSchema, insertTransactionSchema, updateCategoryOrderSchema, ticketReplySchema, insertInternalChatSchema, insertFaqSchema, updateFaqSchema, maintenanceMode, type User, cryptoTransactions, emails, users, receivedMessages, sentMessages } from "@shared/schema";
 import { z } from "zod";
 import fs from "fs";
 import { generateAndSaveInvoice } from "./invoice-service";
