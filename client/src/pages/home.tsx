@@ -786,7 +786,7 @@ export default function Home() {
     { name: "اشتراک ها", href: "#news" },
     { name: "اخرین اخبار", href: "#pricing" },
     { name: "سوالات متداول", href: "#faq" },
-    { name: "سفارش پروژه", href: "#project-orders" },
+    { name: "ارتباط با ما", href: "#contact" },
   ];
 
   const handleNavClick = (href: string) => {
@@ -1619,119 +1619,6 @@ export default function Home() {
               className="order-1 md:order-2"
             >
               <FAQAccordion />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - Project Orders */}
-      <section id="project-orders" className="py-20 md:py-32 px-4 overflow-hidden bg-gradient-to-b from-white via-emerald-50/30 to-white">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left Column - Animated Tablet with Mouse Motion */}
-            <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="flex items-center justify-center relative order-2 md:order-1"
-            >
-              {/* Background Glow */}
-              <div className="absolute -top-20 -left-20 w-80 h-80 bg-emerald-300/20 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-20 right-0 w-72 h-72 bg-orange-300/20 rounded-full blur-3xl"></div>
-
-              {/* Tablet Device Frame */}
-              <AnimatedTablet />
-            </motion.div>
-
-            {/* Right Column - Text & Features */}
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="order-1 md:order-2 space-y-4"
-            >
-              {/* Title & Description */}
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
-                  پروژه خود را سفارش دهید
-                </h2>
-                <p className="text-gray-600 text-lg leading-relaxed">
-                  از وب‌سایت و نرم‌افزار شخصی گرفته تا سیستم‌های پیچیده‌ی تجاری، ما تمام نیازهای توسعه شما را برطرف می‌کنیم. قیمت‌ها بر اساس الزامات پروژه شما تعیین می‌شود.
-                </p>
-              </div>
-
-              {/* Feature Cards */}
-              <div className="space-y-4">
-                {/* Feature 1 */}
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  viewport={{ once: true }}
-                  className="group p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100/50 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 flex items-start gap-4"
-                >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">
-                    ✓
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">تحویل سریع و قابل‌اعتماد</h3>
-                    <p className="text-sm text-gray-600">تمام پروژه‌ها در مدت ۷ روز کاری تحویل داده می‌شوند. کیفیت و سرعت ما بی‌نظیر است.</p>
-                  </div>
-                </motion.div>
-
-                {/* Feature 2 */}
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  viewport={{ once: true }}
-                  className="group p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100/50 hover:border-orange-300 hover:shadow-lg transition-all duration-300 flex items-start gap-4"
-                >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">
-                    ✓
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">مشاوره و طراحی رایگان</h3>
-                    <p className="text-sm text-gray-600">پیش از شروع، ما برای درک کامل الزامات شما مشاوره رایگان میدیم.</p>
-                  </div>
-                </motion.div>
-
-                {/* Feature 3 */}
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                  viewport={{ once: true }}
-                  className="group p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 flex items-start gap-4"
-                >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">
-                    ✓
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1">پشتیبانی تا ۳۰ روز</h3>
-                    <p className="text-sm text-gray-600">پس از تحویل، ما برای ۳۰ روز رایگان پشتیبانی و اصلاحات انجام میدیم.</p>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* CTA Button */}
-              <div className="flex justify-end pt-2">
-                <motion.button 
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsProjectOrderOpen(true)}
-                  className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-                >
-                  ثبت سفارش پروژه
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-              </div>
             </motion.div>
           </div>
         </div>
