@@ -86,11 +86,21 @@ export default function ChatWithSeller() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      // Always target the main administrator
-      const adminId = parentUser?.id;
+      // Always target the main administrator - ensuring we have an ID
+      let adminId = parentUser?.id;
+      
+      if (!adminId) {
+        // Fallback: search for admin role in users list if parentUser not yet loaded
+        const response = await createAuthenticatedRequest("/api/users");
+        if (response.ok) {
+          const users: UserType[] = await response.json();
+          const admin = users.find(u => u.role === "admin");
+          adminId = admin?.id;
+        }
+      }
 
       if (!adminId) {
-        throw new Error("مدیر سیستم یافت نشد");
+        throw new Error("مدیر سیستم یافت نشد. لطفا صفحه را مجددا بارگذاری کنید.");
       }
 
       const response = await createAuthenticatedRequest("/api/internal-chats", {
