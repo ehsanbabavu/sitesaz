@@ -1,22 +1,31 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, MessageCircle, CheckCircle } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Send, MessageCircle, Clock, User, Users } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { createAuthenticatedRequest } from "@/lib/auth";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { User as UserType } from "@shared/schema";
+import type { InternalChat, User as UserType } from "@shared/schema";
+
+// Extended chat type with sender info
+type ChatWithSender = InternalChat & {
+  senderName?: string;
+  senderRole?: string;
+};
 
 export default function ChatWithSeller() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [message, setMessage] = useState("");
-  const [messageSent, setMessageSent] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get admin information
+  // Get parent (seller or admin) information
   const { data: parentUser } = useQuery<UserType | null>({
     queryKey: ["/api/users/admin-main"],
     enabled: !!user,
@@ -28,15 +37,52 @@ export default function ChatWithSeller() {
       }
       return await response.json();
     },
-    staleTime: 60000,
+    staleTime: 60000, // Cache for 1 minute
+  });
+
+  // Get chat messages between current user and admin
+  const { data: chats = [], isLoading, refetch } = useQuery<ChatWithSender[]>({
+    queryKey: ["/api/internal-chats", parentUser?.id],
+    enabled: !!user?.id && !!parentUser?.id,
+    queryFn: async () => {
+      const response = await createAuthenticatedRequest("/api/internal-chats");
+      if (!response.ok) {
+        throw new Error("خطا در دریافت پیام‌ها");
+      }
+      const allChats: ChatWithSender[] = await response.json();
+      // Filter chats to only show conversation with admin
+      return allChats.filter(chat => 
+        (chat.senderId === user?.id && chat.receiverId === parentUser?.id) ||
+        (chat.senderId === parentUser?.id && chat.receiverId === user?.id)
+      );
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
+
+  // Mark all messages as read mutation
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      const response = await createAuthenticatedRequest("/api/internal-chats/mark-all-read", {
+        method: "PATCH",
+      });
+      if (!response.ok) {
+        throw new Error("خطا در علامت‌گذاری پیام‌ها");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
+    },
   });
 
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
+      // Always target the main administrator - ensuring we have an ID
       let adminId = parentUser?.id;
       
       if (!adminId) {
+        // Fallback: fetch admin directly if parentUser not yet loaded
         const response = await createAuthenticatedRequest("/api/users/admin-main");
         if (response.ok) {
           const admin = await response.json();
@@ -62,12 +108,15 @@ export default function ChatWithSeller() {
     },
     onSuccess: () => {
       setMessage("");
-      setMessageSent(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
       toast({
         title: "موفقیت",
-        description: "پیام شما با موفقیت ارسال شد و مدیر آن را دریافت خواهد کرد",
+        description: "پیام شما ارسال شد",
       });
-      setTimeout(() => setMessageSent(false), 5000);
+      // Scroll to bottom after sending
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
@@ -91,9 +140,31 @@ export default function ChatWithSeller() {
     }
   };
 
+  // Mark all messages as read when user enters the chat
+  useEffect(() => {
+    const adminId = parentUser?.id;
+    if (user && adminId && chats.length > 0) {
+      // Check if there are any unread messages from admin
+      const hasUnreadFromAdmin = chats.some(chat => 
+        chat.senderId === adminId && 
+        chat.receiverId === user.id && 
+        !chat.isRead
+      );
+      
+      if (hasUnreadFromAdmin) {
+        markAllAsReadMutation.mutate();
+      }
+    }
+  }, [user, chats, parentUser]); // Run when user, chats or parentUser change
+
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chats]);
+
   if (!user || (user.role !== "user_level_2" && user.role !== "user_level_1")) {
     return (
-      <DashboardLayout title="ارسال پیام به مدیر">
+      <DashboardLayout title="چت با مدیر">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -105,57 +176,111 @@ export default function ChatWithSeller() {
   }
 
   return (
-    <DashboardLayout title="ارسال پیام به مدیر">
-      <div className="max-w-2xl mx-auto" data-testid="chat-with-seller-content">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <MessageCircle className="h-8 w-8 text-primary" />
+    <DashboardLayout title="چت با مدیر">
+      <div className="h-[calc(100vh-8rem)]" data-testid="chat-with-seller-content">
+
+        {/* Chat Messages */}
+        <Card className="h-full flex flex-col">
+          <CardHeader className="pb-3 border-b">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={parentUser?.profilePicture || ""} />
+                <AvatarFallback>
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-base">
+                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : "مدیریت سیستم"}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs h-5">
+                    مدیر
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    آنلاین
+                  </span>
+                </div>
+              </div>
             </div>
-            <CardTitle>ارسال پیام به مدیریت</CardTitle>
-            <CardDescription>
-              پیام خود را بنویسید و ارسال کنید. مدیر پیام شما را در بخش پیام‌های مشتریان دریافت خواهد کرد.
-            </CardDescription>
           </CardHeader>
           
-          <CardContent className="space-y-4">
-            {messageSent && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <p className="text-green-700 text-sm">پیام شما با موفقیت ارسال شد!</p>
+          <CardContent className="flex-1 p-0 overflow-hidden">
+            <div className="h-full flex flex-col">
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3" data-testid="messages-container">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-muted-foreground">
+                      <div className="text-sm">در حال بارگذاری پیام‌ها...</div>
+                    </div>
+                  </div>
+                ) : chats.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-muted-foreground">
+                      <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm mb-1">هنوز پیامی ارسال نشده</p>
+                      <p className="text-xs opacity-75">اولین پیام خود را ارسال کنید</p>
+                    </div>
+                  </div>
+                ) : (
+                  chats.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className={`flex ${
+                        chat.senderId === user.id ? "justify-end" : "justify-start"
+                      }`}
+                      data-testid={`message-${chat.id}`}
+                    >
+                      <div
+                        className={`max-w-[75%] px-3 py-2 rounded-lg ${
+                          chat.senderId === user.id
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Clock className="h-3 w-3 opacity-70" />
+                          <span className="text-xs opacity-70">
+                            {chat.createdAt ? new Date(chat.createdAt).toLocaleString('fa-IR', {
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            }) : 'نامشخص'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            )}
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">متن پیام</label>
-              <Textarea
-                placeholder="پیام خود را اینجا بنویسید..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="min-h-[150px] resize-none"
-                disabled={sendMessageMutation.isPending}
-              />
+
+              {/* Message Input */}
+              <div className="border-t p-3">
+                <div className="flex gap-2">
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="پیام خود را بنویسید..."
+                    className="flex-1 min-h-[40px] max-h-[100px] resize-none"
+                    data-testid="input-message"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || sendMessageMutation.isPending}
+                    size="sm"
+                    data-testid="button-send-message"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Enter برای ارسال، Shift+Enter برای خط جدید
+                </div>
+              </div>
             </div>
-            
-            <Button
-              onClick={handleSendMessage}
-              disabled={!message.trim() || sendMessageMutation.isPending}
-              className="w-full"
-              size="lg"
-            >
-              {sendMessageMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent ml-2" />
-                  در حال ارسال...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 ml-2" />
-                  ارسال پیام
-                </>
-              )}
-            </Button>
           </CardContent>
         </Card>
       </div>
