@@ -879,11 +879,11 @@ export default function Home() {
             <div className="flex items-center gap-2 cursor-pointer">
               <motion.img 
                 src={ariyaBotImage}
-                alt="Ariya Bot"
+                alt="Rakhsh"
                 className="w-10 h-10 rounded-full object-cover shadow-lg"
                 whileHover={{ scale: 1.05 }}
               />
-              <span className="text-2xl font-bold text-gray-800 tracking-tight">Ariya Bot</span>
+              <span className="text-2xl font-bold text-gray-800 tracking-tight">Rakhsh</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -1645,13 +1645,13 @@ export default function Home() {
               <div className="flex items-center gap-4 mb-4">
                 <motion.img 
                   src={ariyaBotImage}
-                  alt="Ariya Bot"
+                  alt="Rakhsh"
                   className="w-16 h-16 rounded-full object-cover"
                   whileHover={{ scale: 1.1 }}
                   animate={{ y: [0, -2, 0] }}
                   transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
                 />
-                <h3 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Ariya Bot</h3>
+                <h3 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Rakhsh</h3>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
                 دستیار هوشمند ۲۴/۷ برای رفع تمام نیازهای کسب و کار شما با تکنولوژی AI پیشرفته
