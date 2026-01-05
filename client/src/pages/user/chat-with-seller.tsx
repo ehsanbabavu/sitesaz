@@ -27,36 +27,32 @@ export default function ChatWithSeller() {
 
   // Get parent (seller or admin) information
   const { data: parentUser } = useQuery<UserType | null>({
-    queryKey: ["/api/users/parent"],
-    enabled: !!user && (user.role === "user_level_2" || user.role === "user_level_1"),
+    queryKey: ["/api/users/admin"],
+    enabled: !!user,
     queryFn: async () => {
-      // For level 2, get their parent (level 1 seller)
-      if (user?.role === "user_level_2" && user.parentUserId) {
-        const response = await createAuthenticatedRequest(`/api/users/${user.parentUserId}`);
-        if (!response.ok) return null;
-        return response.json();
-      }
-      // For level 1, the "parent" is the admin
-      if (user?.role === "user_level_1") {
-        const response = await createAuthenticatedRequest("/api/users");
-        if (!response.ok) return null;
-        const users = await response.json();
-        return users.find((u: UserType) => u.role === "admin") || null;
-      }
-      return null;
+      // Find the main administrator
+      const response = await createAuthenticatedRequest("/api/users");
+      if (!response.ok) return null;
+      const users = await response.json();
+      return users.find((u: UserType) => u.role === "admin") || null;
     },
   });
 
-  // Get chat messages between current user and parent
+  // Get chat messages between current user and admin
   const { data: chats = [], isLoading, refetch } = useQuery<ChatWithSender[]>({
-    queryKey: ["/api/internal-chats"],
-    enabled: !!user && (user.role === "user_level_2" || user.role === "user_level_1"),
+    queryKey: ["/api/internal-chats", parentUser?.id],
+    enabled: !!user && !!parentUser?.id,
     queryFn: async () => {
       const response = await createAuthenticatedRequest("/api/internal-chats");
       if (!response.ok) {
         throw new Error("خطا در دریافت پیام‌ها");
       }
-      return response.json();
+      const allChats: ChatWithSender[] = await response.json();
+      // Filter chats to only show conversation with admin
+      return allChats.filter(chat => 
+        (chat.senderId === user.id && chat.receiverId === parentUser?.id) ||
+        (chat.senderId === parentUser?.id && chat.receiverId === user.id)
+      );
     },
     refetchInterval: 5000, // Refresh every 5 seconds
   });
@@ -80,20 +76,17 @@ export default function ChatWithSeller() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      // For level 1, find admin ID if not already available
-      let receiverId = user?.parentUserId;
-      if (user?.role === "user_level_1" && !receiverId) {
-        receiverId = parentUser?.id;
-      }
+      // Always target the main administrator
+      const adminId = parentUser?.id;
 
-      if (!receiverId) {
-        throw new Error("گیرنده پیام یافت نشد");
+      if (!adminId) {
+        throw new Error("مدیر سیستم یافت نشد");
       }
 
       const response = await createAuthenticatedRequest("/api/internal-chats", {
         method: "POST",
         body: JSON.stringify({
-          receiverId: receiverId,
+          receiverId: adminId,
           message: messageText,
         }),
       });
@@ -138,16 +131,16 @@ export default function ChatWithSeller() {
 
   // Mark all messages as read when user enters the chat
   useEffect(() => {
-    const receiverId = user?.role === "user_level_2" ? user.parentUserId : parentUser?.id;
-    if (user && receiverId && chats.length > 0) {
-      // Check if there are any unread messages from parent/admin
-      const hasUnreadFromParent = chats.some(chat => 
-        chat.senderId === receiverId && 
+    const adminId = parentUser?.id;
+    if (user && adminId && chats.length > 0) {
+      // Check if there are any unread messages from admin
+      const hasUnreadFromAdmin = chats.some(chat => 
+        chat.senderId === adminId && 
         chat.receiverId === user.id && 
         !chat.isRead
       );
       
-      if (hasUnreadFromParent) {
+      if (hasUnreadFromAdmin) {
         markAllAsReadMutation.mutate();
       }
     }
@@ -160,7 +153,7 @@ export default function ChatWithSeller() {
 
   if (!user || (user.role !== "user_level_2" && user.role !== "user_level_1")) {
     return (
-      <DashboardLayout title={user?.role === "user_level_1" ? "چت با مدیر" : "چت با فروشنده"}>
+      <DashboardLayout title="چت با مدیر">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -171,21 +164,8 @@ export default function ChatWithSeller() {
     );
   }
 
-  if (user.role === "user_level_2" && !user.parentUserId) {
-    return (
-      <DashboardLayout title="چت با فروشنده">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">فروشنده‌ای برای شما تعین نشده است</p>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout title={user.role === "user_level_1" ? "چت با مدیر" : "چت با فروشنده"}>
+    <DashboardLayout title="چت با مدیر">
       <div className="h-[calc(100vh-8rem)]" data-testid="chat-with-seller-content">
 
         {/* Chat Messages */}
@@ -200,11 +180,11 @@ export default function ChatWithSeller() {
               </Avatar>
               <div>
                 <CardTitle className="text-base">
-                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : (user.role === "user_level_1" ? "مدیریت سیستم" : "فروشنده")}
+                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : "مدیریت سیستم"}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs h-5">
-                    {user.role === "user_level_1" ? "مدیر" : "فروشنده"}
+                    مدیر
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     آنلاین
