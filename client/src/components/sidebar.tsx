@@ -252,7 +252,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
     { path: "/cart", label: "سبد خرید", icon: ShoppingCart },
     { path: "/addresses", label: "آدرس‌ها", icon: MapPin },
     { path: "/financial", label: "امور مالی", icon: Wallet },
-    { path: "/chat-with-seller", label: "چت با فروشنده", icon: MessageCircle },
+    { path: "/chat-with-seller", label: "چت با مدیر", icon: MessageCircle },
     { path: "/send-ticket", label: "ارسال تیکت", icon: Send },
     { path: "/profile", label: "پروفایل", icon: User },
   ];
