@@ -3283,8 +3283,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         chats = await storage.getInternalChatsBetweenUsers(user.id, user.parentUserId);
       } else if (user.role === "user_level_1") {
-        // Level 1 users can see all their customers' chats
-        chats = await storage.getInternalChatsForSeller(user.id);
+        // Level 1 users can see all their customers' chats OR chat with admin
+        const admin = (await storage.getAllUsers()).find(u => u.role === "admin");
+        const customerChats = await storage.getInternalChatsForSeller(user.id);
+        const adminChats = admin ? await storage.getInternalChatsBetweenUsers(user.id, admin.id) : [];
+        chats = [...customerChats, ...adminChats];
       } else {
         return res.status(403).json({ message: "دسترسی مجاز نیست" });
       }
@@ -3318,10 +3321,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "شما فقط می‌توانید با فروشنده خود چت کنید" });
         }
       } else if (user.role === "user_level_1") {
-        // Level 1 users can only send to their direct sub-users
+        // Level 1 users can send to their direct sub-users OR to admin
         const receiver = await storage.getUser(validatedData.receiverId);
-        if (!receiver || receiver.parentUserId !== user.id) {
-          return res.status(400).json({ message: "شما فقط می‌توانید با مشتریان خود چت کنید" });
+        if (!receiver) {
+          return res.status(404).json({ message: "گیرنده یافت نشد" });
+        }
+        
+        const isAdmin = receiver.role === "admin";
+        const isCustomer = receiver.parentUserId === user.id;
+        
+        if (!isAdmin && !isCustomer) {
+          return res.status(400).json({ message: "شما فقط می‌توانید با مشتریان خود یا مدیر سیستم چت کنید" });
         }
       }
 

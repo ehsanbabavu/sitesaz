@@ -25,22 +25,32 @@ export default function ChatWithSeller() {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get parent (seller) information
+  // Get parent (seller or admin) information
   const { data: parentUser } = useQuery<UserType | null>({
     queryKey: ["/api/users/parent"],
-    enabled: !!user && user.role === "user_level_2",
+    enabled: !!user && (user.role === "user_level_2" || user.role === "user_level_1"),
     queryFn: async () => {
-      if (!user?.parentUserId) return null;
-      const response = await createAuthenticatedRequest(`/api/users/${user.parentUserId}`);
-      if (!response.ok) return null;
-      return response.json();
+      // For level 2, get their parent (level 1 seller)
+      if (user?.role === "user_level_2" && user.parentUserId) {
+        const response = await createAuthenticatedRequest(`/api/users/${user.parentUserId}`);
+        if (!response.ok) return null;
+        return response.json();
+      }
+      // For level 1, the "parent" is the admin
+      if (user?.role === "user_level_1") {
+        const response = await createAuthenticatedRequest("/api/users");
+        if (!response.ok) return null;
+        const users = await response.json();
+        return users.find((u: UserType) => u.role === "admin") || null;
+      }
+      return null;
     },
   });
 
   // Get chat messages between current user and parent
   const { data: chats = [], isLoading, refetch } = useQuery<ChatWithSender[]>({
     queryKey: ["/api/internal-chats"],
-    enabled: !!user && user.role === "user_level_2" && !!user.parentUserId,
+    enabled: !!user && (user.role === "user_level_2" || user.role === "user_level_1"),
     queryFn: async () => {
       const response = await createAuthenticatedRequest("/api/internal-chats");
       if (!response.ok) {
@@ -70,10 +80,20 @@ export default function ChatWithSeller() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
+      // For level 1, find admin ID if not already available
+      let receiverId = user?.parentUserId;
+      if (user?.role === "user_level_1" && !receiverId) {
+        receiverId = parentUser?.id;
+      }
+
+      if (!receiverId) {
+        throw new Error("گیرنده پیام یافت نشد");
+      }
+
       const response = await createAuthenticatedRequest("/api/internal-chats", {
         method: "POST",
         body: JSON.stringify({
-          receiverId: user?.parentUserId,
+          receiverId: receiverId,
           message: messageText,
         }),
       });
@@ -94,10 +114,10 @@ export default function ChatWithSeller() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "خطا",
-        description: "خطا در ارسال پیام",
+        description: error.message || "خطا در ارسال پیام",
         variant: "destructive",
       });
     },
@@ -118,10 +138,11 @@ export default function ChatWithSeller() {
 
   // Mark all messages as read when user enters the chat
   useEffect(() => {
-    if (user && user.role === "user_level_2" && user.parentUserId && chats.length > 0) {
-      // Check if there are any unread messages from parent
+    const receiverId = user?.role === "user_level_2" ? user.parentUserId : parentUser?.id;
+    if (user && receiverId && chats.length > 0) {
+      // Check if there are any unread messages from parent/admin
       const hasUnreadFromParent = chats.some(chat => 
-        chat.senderId === user.parentUserId && 
+        chat.senderId === receiverId && 
         chat.receiverId === user.id && 
         !chat.isRead
       );
@@ -130,16 +151,16 @@ export default function ChatWithSeller() {
         markAllAsReadMutation.mutate();
       }
     }
-  }, [user, chats]); // Run when user or chats change
+  }, [user, chats, parentUser]); // Run when user, chats or parentUser change
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chats]);
 
-  if (!user || user.role !== "user_level_2") {
+  if (!user || (user.role !== "user_level_2" && user.role !== "user_level_1")) {
     return (
-      <DashboardLayout title="چت با فروشنده">
+      <DashboardLayout title={user?.role === "user_level_1" ? "چت با مدیر" : "چت با فروشنده"}>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -150,7 +171,7 @@ export default function ChatWithSeller() {
     );
   }
 
-  if (!user.parentUserId) {
+  if (user.role === "user_level_2" && !user.parentUserId) {
     return (
       <DashboardLayout title="چت با فروشنده">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -164,7 +185,7 @@ export default function ChatWithSeller() {
   }
 
   return (
-    <DashboardLayout title="چت با فروشنده">
+    <DashboardLayout title={user.role === "user_level_1" ? "چت با مدیر" : "چت با فروشنده"}>
       <div className="h-[calc(100vh-8rem)]" data-testid="chat-with-seller-content">
 
         {/* Chat Messages */}
@@ -179,11 +200,11 @@ export default function ChatWithSeller() {
               </Avatar>
               <div>
                 <CardTitle className="text-base">
-                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : "فروشنده"}
+                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : (user.role === "user_level_1" ? "مدیریت سیستم" : "فروشنده")}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs h-5">
-                    فروشنده
+                    {user.role === "user_level_1" ? "مدیر" : "فروشنده"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     آنلاین
