@@ -3301,7 +3301,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user!;
       let chats;
 
-      if (user.role === "user_level_2") {
+      if (user.role === "admin") {
+        // Admin can see all chats with level 1 users (sellers)
+        const allUsers = await storage.getAllUsers();
+        const level1Users = allUsers.filter(u => u.role === "user_level_1");
+        let allChats: any[] = [];
+        for (const seller of level1Users) {
+          const sellerChats = await storage.getInternalChatsBetweenUsers(user.id, seller.id);
+          allChats = [...allChats, ...sellerChats];
+        }
+        chats = allChats;
+      } else if (user.role === "user_level_2") {
         // Level 2 users chat with their parent (seller)
         if (!user.parentUserId) {
           return res.status(400).json({ message: "فروشنده‌ای برای شما تعین نشده است" });
@@ -3329,9 +3339,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user!;
       
-      // Allow both level 1 and level 2 users to send messages
-      if (user.role !== "user_level_1" && user.role !== "user_level_2") {
-        return res.status(403).json({ message: "فقط کاربران سطح ۱ و ۲ می‌توانند پیام ارسال کنند" });
+      // Allow admin, level 1, and level 2 users to send messages
+      if (user.role !== "admin" && user.role !== "user_level_1" && user.role !== "user_level_2") {
+        return res.status(403).json({ message: "دسترسی مجاز نیست" });
       }
 
       const validatedData = insertInternalChatSchema.parse({
@@ -3357,6 +3367,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (!isAdmin && !isCustomer) {
           return res.status(400).json({ message: "شما فقط می‌توانید با مشتریان خود یا مدیر سیستم چت کنید" });
+        }
+      } else if (user.role === "admin") {
+        // Admin can send to level 1 users (sellers)
+        const receiver = await storage.getUser(validatedData.receiverId);
+        if (!receiver) {
+          return res.status(404).json({ message: "گیرنده یافت نشد" });
+        }
+        
+        if (receiver.role !== "user_level_1") {
+          return res.status(400).json({ message: "مدیر فقط می‌تواند با فروشندگان چت کند" });
         }
       }
 
