@@ -27,15 +27,25 @@ export default function ChatWithSeller() {
 
   // Get parent (seller or admin) information
   const { data: parentUser } = useQuery<UserType | null>({
-    queryKey: ["/api/users/admin"],
+    queryKey: ["/api/users/admin-main"],
     enabled: !!user,
     queryFn: async () => {
-      // Find the main administrator
+      // Find the main administrator by fetching all users and filtering
       const response = await createAuthenticatedRequest("/api/users");
       if (!response.ok) return null;
-      const users = await response.json();
-      return users.find((u: UserType) => u.role === "admin") || null;
+      const users: UserType[] = await response.json();
+      
+      // Look for the admin user specifically
+      const admin = users.find(u => u.role === "admin");
+      
+      if (!admin) {
+        console.error("Admin user not found in user list");
+        return null;
+      }
+      
+      return admin;
     },
+    staleTime: 60000, // Cache for 1 minute
   });
 
   // Get chat messages between current user and admin
