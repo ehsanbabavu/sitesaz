@@ -53,8 +53,8 @@ export default function SellerChats() {
     })[0];
 
     const unreadCount = sellerChats.filter(c => 
-      c.senderId === seller.id && 
-      c.receiverId === user?.id && 
+      String(c.senderId) === String(seller.id) && 
+      String(c.receiverId) === String(user?.id) && 
       !c.isRead
     ).length;
 
@@ -101,8 +101,8 @@ export default function SellerChats() {
   useEffect(() => {
     if (user && user.role === "admin" && selectedSellerId && allChats && allChats.length > 0) {
       const hasUnreadFromSelected = allChats.some(chat => 
-        chat.senderId === selectedSellerId && 
-        chat.receiverId === user.id && 
+        String(chat.senderId) === String(selectedSellerId) && 
+        String(chat.receiverId) === String(user.id) && 
         !chat.isRead
       );
       
