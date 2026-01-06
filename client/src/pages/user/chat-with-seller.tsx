@@ -55,11 +55,18 @@ export default function ChatWithSeller() {
         throw new Error("خطا در دریافت پیام‌ها");
       }
       const allChats: ChatWithSender[] = await response.json();
-      // Filter chats to only show conversation with the target
-      return allChats.filter(chat => 
-        (chat.senderId === user?.id && chat.receiverId === parentUser?.id) ||
-        (chat.senderId === parentUser?.id && chat.receiverId === user?.id)
-      );
+      
+      // Filter chats to show conversation with the target
+      // Use parentUserId from user object for level 2 users
+      const currentParentId = user?.role === "user_level_2" ? user.parentUserId : parentUser?.id;
+
+      const filtered = allChats.filter(chat => {
+        const isFromMeToParent = String(chat.senderId) === String(user?.id) && String(chat.receiverId) === String(currentParentId);
+        const isFromParentToMe = String(chat.senderId) === String(currentParentId) && String(chat.receiverId) === String(user?.id);
+        return isFromMeToParent || isFromParentToMe;
+      });
+      
+      return filtered;
     },
     refetchInterval: 5000,
   });
@@ -67,8 +74,13 @@ export default function ChatWithSeller() {
   // Mark all messages as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
+      // Need to tell backend WHOSE messages we are marking as read
+      const currentParentId = user?.role === "user_level_2" ? user.parentUserId : parentUser?.id;
+      if (!currentParentId) return;
+
       const response = await createAuthenticatedRequest("/api/internal-chats/mark-all-read", {
         method: "PATCH",
+        body: JSON.stringify({ senderId: currentParentId })
       });
       if (!response.ok) {
         throw new Error("خطا در علامت‌گذاری پیام‌ها");
@@ -76,7 +88,7 @@ export default function ChatWithSeller() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats", parentUser?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
     },
   });
 
