@@ -54,15 +54,18 @@ export default function SellerChats() {
 
     const unreadCount = sellerChats.filter(c => 
       String(c.senderId) === String(seller.id) && 
-      String(c.receiverId) === String(user?.id) && 
       !c.isRead
     ).length;
+
+    // Use a unique key for the badge to force re-render when unreadCount changes
+    const badgeKey = `unread-${seller.sellerId}-${unreadCount}`;
 
     return {
       sellerId: seller.id,
       sellerName: `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || seller.username || "نام نامشخص",
       latestMessage: latestChat,
-      unreadCount
+      unreadCount,
+      badgeKey
     };
   }).sort((a, b) => {
     const aTime = a.latestMessage?.createdAt ? new Date(a.latestMessage.createdAt).getTime() : 0;
@@ -229,7 +232,7 @@ export default function SellerChats() {
                               {seller.sellerName}
                             </h3>
                             {seller.unreadCount > 0 && (
-                              <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                              <Badge key={seller.badgeKey} variant="destructive" className="h-5 px-1.5 text-xs">
                                 {seller.unreadCount}
                               </Badge>
                             )}

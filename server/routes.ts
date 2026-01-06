@@ -3441,19 +3441,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark all messages as read for current user
   app.patch("/api/internal-chats/mark-all-read", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const user = req.user!;
+      const { senderId } = req.body;
+      const currentUserId = req.user!.id;
       
-      // Only allow level 1 and level 2 users
-      if (user.role !== "user_level_1" && user.role !== "user_level_2") {
-        return res.status(403).json({ message: "دسترسی محدود" });
-      }
+      console.log(`[Chat] Marking as read: senderId=${senderId}, receiverId=${currentUserId}`);
 
-      const success = await storage.markAllMessagesAsReadForUser(user.id, user.role);
-      if (success) {
-        res.json({ message: "تمام پیام‌ها خوانده شده علامت‌گذاری شدند" });
+      if (senderId) {
+        // Mark messages from a specific sender to the current user as read
+        await storage.markMessagesFromSenderAsRead(senderId, currentUserId);
+        console.log(`[Chat] Marked specific messages as read for sender ${senderId}`);
       } else {
-        res.status(500).json({ message: "خطا در علامت‌گذاری پیام‌ها" });
+        // Fallback: Mark all messages for this receiver as read
+        await storage.markAllMessagesAsReadForUser(currentUserId, req.user!.role);
+        console.log(`[Chat] Marked ALL messages as read for receiver ${currentUserId}`);
       }
+      
+      res.json({ message: "تمام پیام‌ها با موفقیت خوانده شد" });
     } catch (error) {
       console.error("Error marking all messages as read:", error);
       res.status(500).json({ message: "خطا در علامت‌گذاری پیام‌ها" });
