@@ -27,20 +27,25 @@ export default function ChatWithSeller() {
 
   // Get parent (seller or admin) information
   const { data: parentUser } = useQuery<UserType | null>({
-    queryKey: ["/api/users/admin-main"],
+    queryKey: ["/api/users/parent"],
     enabled: !!user,
     queryFn: async () => {
-      const response = await createAuthenticatedRequest("/api/users/admin-main");
-      if (!response.ok) {
-        console.error("Failed to fetch admin user");
-        return null;
+      // For level 2, get their parent (level 1 seller)
+      if (user?.role === "user_level_2" && user.parentUserId) {
+        const response = await createAuthenticatedRequest(`/api/users/${user.parentUserId}`);
+        if (response.ok) return await response.json();
       }
-      return await response.json();
+      
+      // Fallback or for level 1: get main administrator
+      const response = await createAuthenticatedRequest("/api/users/admin-main");
+      if (response.ok) return await response.json();
+      
+      return null;
     },
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
   });
 
-  // Get chat messages between current user and admin
+  // Get chat messages between current user and target (seller or admin)
   const { data: chats = [], isLoading, refetch } = useQuery<ChatWithSender[]>({
     queryKey: ["/api/internal-chats", parentUser?.id],
     enabled: !!user?.id && !!parentUser?.id,
@@ -50,13 +55,13 @@ export default function ChatWithSeller() {
         throw new Error("خطا در دریافت پیام‌ها");
       }
       const allChats: ChatWithSender[] = await response.json();
-      // Filter chats to only show conversation with admin
+      // Filter chats to only show conversation with the target
       return allChats.filter(chat => 
         (chat.senderId === user?.id && chat.receiverId === parentUser?.id) ||
         (chat.senderId === parentUser?.id && chat.receiverId === user?.id)
       );
     },
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 5000,
   });
 
   // Mark all messages as read mutation
@@ -78,26 +83,29 @@ export default function ChatWithSeller() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      // Always target the main administrator - ensuring we have an ID
-      let adminId = parentUser?.id;
+      let targetId = parentUser?.id;
       
-      if (!adminId) {
-        // Fallback: fetch admin directly if parentUser not yet loaded
-        const response = await createAuthenticatedRequest("/api/users/admin-main");
-        if (response.ok) {
-          const admin = await response.json();
-          adminId = admin?.id;
+      if (!targetId) {
+        // Fallback search
+        if (user?.role === "user_level_2" && user.parentUserId) {
+          targetId = user.parentUserId;
+        } else {
+          const response = await createAuthenticatedRequest("/api/users/admin-main");
+          if (response.ok) {
+            const admin = await response.json();
+            targetId = admin?.id;
+          }
         }
       }
 
-      if (!adminId) {
-        throw new Error("مدیر سیستم یافت نشد. لطفا صفحه را مجددا بارگذاری کنید.");
+      if (!targetId) {
+        throw new Error("مخاطب یافت نشد. لطفا صفحه را مجددا بارگذاری کنید.");
       }
 
       const response = await createAuthenticatedRequest("/api/internal-chats", {
         method: "POST",
         body: JSON.stringify({
-          receiverId: adminId,
+          receiverId: targetId,
           message: messageText,
         }),
       });
@@ -176,7 +184,7 @@ export default function ChatWithSeller() {
   }
 
   return (
-    <DashboardLayout title="چت با مدیر">
+    <DashboardLayout title={user.role === "user_level_1" ? "چت با مدیر" : "چت با فروشنده"}>
       <div className="h-[calc(100vh-8rem)]" data-testid="chat-with-seller-content">
 
         {/* Chat Messages */}
@@ -191,11 +199,11 @@ export default function ChatWithSeller() {
               </Avatar>
               <div>
                 <CardTitle className="text-base">
-                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : "مدیریت سیستم"}
+                  {parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : (user.role === "user_level_1" ? "مدیریت سیستم" : "فروشنده")}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs h-5">
-                    مدیر
+                    {user.role === "user_level_1" ? "مدیر" : "فروشنده"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     آنلاین
