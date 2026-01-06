@@ -88,7 +88,9 @@ export default function ChatWithSeller() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both lists and unread counts
       queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats/unread-count"] });
     },
   });
 

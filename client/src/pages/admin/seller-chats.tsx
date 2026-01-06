@@ -82,9 +82,10 @@ export default function SellerChats() {
     : [];
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (senderId: string) => {
       const response = await createAuthenticatedRequest("/api/internal-chats/mark-all-read", {
         method: "PATCH",
+        body: JSON.stringify({ senderId })
       });
       if (!response.ok) {
         throw new Error("خطا در علامت‌گذاری پیام‌ها");
@@ -93,8 +94,23 @@ export default function SellerChats() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats/unread-count"] });
     },
   });
+
+  useEffect(() => {
+    if (user && user.role === "admin" && selectedSellerId && allChats && allChats.length > 0) {
+      const hasUnreadFromSelected = allChats.some(chat => 
+        chat.senderId === selectedSellerId && 
+        chat.receiverId === user.id && 
+        !chat.isRead
+      );
+      
+      if (hasUnreadFromSelected) {
+        markAllAsReadMutation.mutate(selectedSellerId);
+      }
+    }
+  }, [user, allChats, selectedSellerId]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { receiverId: string; message: string }) => {
@@ -124,19 +140,6 @@ export default function SellerChats() {
       });
     },
   });
-
-  useEffect(() => {
-    if (user && user.role === "admin" && allChats && allChats.length > 0) {
-      const hasUnreadFromSellers = allChats.some(chat => 
-        chat.receiverId === user.id && 
-        !chat.isRead
-      );
-      
-      if (hasUnreadFromSellers) {
-        markAllAsReadMutation.mutate();
-      }
-    }
-  }, [user, allChats]);
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedSellerId || sendMessageMutation.isPending) return;
