@@ -248,10 +248,12 @@ export default function ChatWithSeller() {
                     </div>
                   </div>
                 ) : (
-                  // Remove duplicates based on ID before rendering
-                  Array.from(new Map(chats.map(chat => [chat.id, chat])).values()).map((chat) => (
-                    <div
-                      key={chat.id}
+                  // Remove duplicates based on ID and sort messages chronologically (oldest at top)
+                  Array.from(new Map(chats.map(chat => [chat.id, chat])).values())
+                    .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
+                    .map((chat) => (
+                      <div
+                        key={chat.id}
                       className={`flex ${
                         chat.senderId === user.id ? "justify-end" : "justify-start"
                       }`}
