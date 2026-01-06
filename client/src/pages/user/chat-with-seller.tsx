@@ -76,13 +76,16 @@ export default function ChatWithSeller() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats", parentUser?.id] });
     },
   });
 
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
+      // Prevent double submission if already loading
+      if (sendMessageMutation.isPending) return;
+
       let targetId = parentUser?.id;
       
       if (!targetId) {
@@ -106,7 +109,7 @@ export default function ChatWithSeller() {
         method: "POST",
         body: JSON.stringify({
           receiverId: targetId,
-          message: messageText,
+          message: messageText.trim(),
         }),
       });
       if (!response.ok) {
@@ -116,7 +119,8 @@ export default function ChatWithSeller() {
     },
     onSuccess: () => {
       setMessage("");
-      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats"] });
+      // Force invalidate to get the latest messages
+      queryClient.invalidateQueries({ queryKey: ["/api/internal-chats", parentUser?.id] });
       toast({
         title: "موفقیت",
         description: "پیام شما ارسال شد",
@@ -232,7 +236,8 @@ export default function ChatWithSeller() {
                     </div>
                   </div>
                 ) : (
-                  chats.map((chat) => (
+                  // Remove duplicates based on ID before rendering
+                  Array.from(new Map(chats.map(chat => [chat.id, chat])).values()).map((chat) => (
                     <div
                       key={chat.id}
                       className={`flex ${
