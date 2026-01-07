@@ -256,10 +256,19 @@ export function AppSidebar() {
               {renderCollapsibleMenu("تجاری", businessItems)}
               {renderCollapsibleMenu("انبارداری", inventoryItems)}
               {renderCollapsibleMenu("مدیریت کاربران", usersManagementItems)}
-              {renderCollapsibleMenu("تنظیمات", [
-                ...settingsItems,
-                { path: "/plugins", label: "پلاگین‌ها", icon: Plus }
-              ])}
+              {renderCollapsibleMenu("تنظیمات", settingsItems)}
+              <li key="/plugins">
+                <Link href="/plugins">
+                  <Button 
+                    variant={isActive("/plugins") ? "default" : "ghost"} 
+                    className={cn("w-full justify-start", isActive("/plugins") && "bg-primary text-primary-foreground")}
+                    onClick={() => handleNavigate("/plugins")}
+                  >
+                    <Plus className="w-5 h-5 ml-2" />
+                    پلاگین‌ها
+                  </Button>
+                </Link>
+              </li>
             </>
           )}
 
