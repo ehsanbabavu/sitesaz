@@ -292,22 +292,6 @@ export function AppSidebar() {
           )}
         </SidebarMenu>
       </nav>
-
-      <div className="p-4 border-t border-border" data-testid="section-user-footer">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-primary" />
-            </div>
-            <div className="mr-2 overflow-hidden">
-              <p className="text-sm font-medium text-foreground truncate">{user?.username}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.role === "admin" ? "مدیر کل" : user?.role === "user_level_1" ? "فروشنده" : "کاربر عادی"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </aside>
   );
 }
