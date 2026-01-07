@@ -5,13 +5,19 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/queryClient"
-import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "./ui/sidebar"
+import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger, useSidebar, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "./ui/sidebar"
 
 export function AppSidebar() {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const sidebar = useSidebar();
 
   const isActive = (path: string) => location === path;
+
+  const handleNavigate = (path: string) => {
+    setLocation(path);
+    if (sidebar) sidebar.setOpenMobile(false);
+  };
 
   const { data: vatPluginData } = useQuery<{ isEnabled: boolean }>({
     queryKey: ['/api/plugins/vat/status'],
@@ -180,34 +186,40 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {user?.role !== "admin" && userMenuItems.map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                  <item.icon className="w-5 h-5 ml-2" />
-                  {item.label}
-                </Button>
-              </Link>
+              <Button 
+                variant={isActive(item.path) ? "default" : "ghost"} 
+                className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
+                onClick={() => handleNavigate(item.path)}
+              >
+                <item.icon className="w-5 h-5 ml-2" />
+                {item.label}
+              </Button>
             </li>
           ))}
 
           {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product"].includes(item.path)).map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                  <item.icon className="w-5 h-5 ml-2" />
-                  {item.label}
-                </Button>
-              </Link>
+              <Button 
+                variant={isActive(item.path) ? "default" : "ghost"} 
+                className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
+                onClick={() => handleNavigate(item.path)}
+              >
+                <item.icon className="w-5 h-5 ml-2" />
+                {item.label}
+              </Button>
             </li>
           ))}
 
           {user?.role === "user_level_2" && level2MenuItems.map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <Button variant={isActive(item.path) ? "default" : "ghost"} className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                  <item.icon className="w-5 h-5 ml-2" />
-                  {item.label}
-                </Button>
-              </Link>
+              <Button 
+                variant={isActive(item.path) ? "default" : "ghost"} 
+                className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
+                onClick={() => handleNavigate(item.path)}
+              >
+                <item.icon className="w-5 h-5 ml-2" />
+                {item.label}
+              </Button>
             </li>
           ))}
 
