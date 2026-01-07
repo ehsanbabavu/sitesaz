@@ -221,7 +221,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
     { path: "/received-orders", label: "سفارشات دریافتی", icon: Package },
     { path: "/transactions", label: "تراکنش‌ها", icon: DollarSign },
     ...(isCryptoPluginEnabled ? [{ path: "/crypto-transactions", label: "ارز دیجیتال", icon: Wallet }] : []),
-    { path: "/customer-chats", label: "چت با مشتریان", icon: MessageCircle },
     { path: "/my-tickets", label: "تیکت‌ها", icon: Ticket },
   ];
 
