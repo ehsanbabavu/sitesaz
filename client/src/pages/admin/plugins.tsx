@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { createAuthenticatedRequest } from "@/lib/auth";
-import { Puzzle, Plus, Trash2, MessageCircle, Settings, Loader2 } from "lucide-react";
+import { Puzzle, Plus, Trash2, MessageCircle, Settings, Loader2, MessageSquare, Ticket, Wallet, Package, Crown, Bot, History, Database, Receipt, Truck, CreditCard } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
 interface Plugin {
@@ -111,9 +111,35 @@ export default function PluginsManagement() {
     },
   });
 
-  const getIconComponent = (iconName: string) => {
-    const IconComponent = (LucideIcons as any)[iconName];
-    return IconComponent ? <IconComponent className="w-8 h-8" /> : <Puzzle className="w-8 h-8" />;
+  const getPluginDetails = (pluginName: string) => {
+    switch (pluginName) {
+      case 'whatsapp':
+        return { label: "واتس‌اپ", icon: MessageSquare, description: "اتصال به API واتس‌اپ و ارسال خودکار اعلان‌ها" };
+      case 'internal-chats':
+        return { label: "چت کاربران", icon: MessageCircle, description: "سیستم چت داخلی بین مدیر و کاربران سایت" };
+      case 'tickets':
+        return { label: "تیکت‌ها", icon: Ticket, description: "سیستم تیکتینگ و پشتیبانی کاربران" };
+      case 'crypto-transactions':
+        return { label: "ارز دیجیتال", icon: Wallet, description: "مدیریت تراکنش‌های کریپتو و درگاه پرداخت ارز دیجیتال" };
+      case 'received-orders':
+        return { label: "سفارشات", icon: Package, description: "مدیریت سفارشات دریافتی از مشتریان" };
+      case 'subscriptions':
+        return { label: "اشتراک‌ها", icon: Crown, description: "سیستم مدیریت اشتراک و سطوح دسترسی" };
+      case 'ai':
+        return { label: "هوش مصنوعی", icon: Bot, description: "تنظیمات و مدیریت سرویس‌های هوش مصنوعی" };
+      case 'login-logs':
+        return { label: "لاگ ورود", icon: History, description: "مشاهده تاریخچه ورود کاربران به سیستم" };
+      case 'backup':
+        return { label: "پشتیبان‌گیری", icon: Database, description: "مدیریت بک‌آپ و بازیابی پایگاه داده" };
+      case 'vat':
+        return { label: "مالیات", icon: Receipt, description: "تنظیمات مالیات بر ارزش افزوده" };
+      case 'shipping':
+        return { label: "حمل و نقل", icon: Truck, description: "مدیریت روش‌های ارسال و ترابری" };
+      case 'bank-card':
+        return { label: "کارت بانکی", icon: CreditCard, description: "مدیریت اطلاعات حساب و کارت‌های بانکی" };
+      default:
+        return { label: pluginName, icon: Puzzle, description: "" };
+    }
   };
 
   if (isLoading) {
@@ -134,20 +160,22 @@ export default function PluginsManagement() {
             <Card key={plugin.id} className={`relative ${!plugin.isEnabled ? "opacity-60" : ""}`}>
               <div className="flex items-center gap-3 p-4">
                 <div className={`p-2 rounded-lg ${plugin.isEnabled ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                  {getIconComponent(plugin.icon)}
+                  {(() => {
+                    const details = getPluginDetails(plugin.name);
+                    const IconComp = details.icon;
+                    return <IconComp className="w-8 h-8" />;
+                  })()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-sm">{plugin.displayName}</h3>
+                    <h3 className="font-medium text-sm">{getPluginDetails(plugin.name).label}</h3>
                     <span className="text-xs text-muted-foreground">
                       ({plugin.isBuiltIn ? "پیش‌فرض" : "سفارشی"})
                     </span>
                   </div>
-                  {plugin.description && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {plugin.description}
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground truncate">
+                    {getPluginDetails(plugin.name).description}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${plugin.isEnabled ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"}`}>
