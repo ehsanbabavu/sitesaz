@@ -169,9 +169,6 @@ export default function PluginsManagement() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium text-sm">{getPluginDetails(plugin.name).label}</h3>
-                    <span className="text-xs text-muted-foreground">
-                      ({plugin.isBuiltIn ? "پیش‌فرض" : "سفارشی"})
-                    </span>
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
                     {getPluginDetails(plugin.name).description}
