@@ -58,7 +58,7 @@ export default function SellerChats() {
     ).length;
 
     // Use a unique key for the badge to force re-render when unreadCount changes
-    const badgeKey = `unread-${seller.sellerId}-${unreadCount}`;
+    const badgeKey = `unread-${seller.id}-${unreadCount}`;
 
     return {
       sellerId: seller.id,

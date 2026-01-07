@@ -160,6 +160,40 @@ function PluginAwareAdminRoute({ component: Component, pluginName }: { component
   return <Component />;
 }
 
+function PluginGatedRoute({ children, pluginName }: { children: React.ReactNode; pluginName: string }) {
+  const { user, isLoading } = useAuth();
+  const { data: pluginStatus, isLoading: pluginLoading } = useQuery<{ isEnabled: boolean }>({
+    queryKey: [`/api/plugins/${pluginName}/status`],
+    queryFn: async () => {
+      const response = await fetch(`/api/plugins/${pluginName}/status`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return { isEnabled: false };
+      return response.json();
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
+  
+  if (isLoading || pluginLoading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-lg">در حال بارگذاری...</div>
+    </div>;
+  }
+  
+  if (!user) {
+    return <Login />;
+  }
+  
+  if (!pluginStatus?.isEnabled) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-lg text-muted-foreground">این پلاگین غیرفعال است</div>
+    </div>;
+  }
+  
+  return <>{children}</>;
+}
+
 function AdminOrLevel1Route({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
   
@@ -278,7 +312,7 @@ function Router() {
       <Route path="/users" component={() => <AdminRoute component={UserManagement} />} />
       <Route path="/tickets" component={() => <AdminRoute component={TicketManagement} />} />
       <Route path="/guest-chats" component={() => <PluginAwareAdminRoute component={GuestChats} pluginName="guest-chats" />} />
-      <Route path="/seller-chats" component={() => <AdminRoute component={SellerChats} />} />
+      <Route path="/seller-chats" component={() => <PluginAwareAdminRoute component={SellerChats} pluginName="internal-chats" />} />
       <Route path="/plugins" component={() => <AdminRoute component={PluginsManagement} />} />
       <Route path="/subscriptions" component={() => <AdminRoute component={Subscriptions} />} />
       <Route path="/categories" component={() => <AdminOrLevel1Route component={Categories} />} />
@@ -306,7 +340,11 @@ function Router() {
       <Route path="/shipping-settings" component={() => <AdminOrLevel1Route component={ShippingSettings} />} />
       <Route path="/vat-settings" component={() => <AdminOrLevel1Route component={VatSettings} />} />
       <Route path="/bank-card" component={() => <AdminOrLevel1Route component={BankCard} />} />
-      <Route path="/chat-with-seller" component={() => <AdminOrLevel1OrLevel2Route component={ChatWithSeller} />} />
+      <Route path="/chat-with-seller" component={() => <AdminOrLevel1OrLevel2Route component={() => (
+        <PluginGatedRoute pluginName="internal-chats">
+          <ChatWithSeller />
+        </PluginGatedRoute>
+      )} />} />
       <Route path="/faqs" component={() => <ProtectedRoute component={FaqsPage} />} />
       <Route path="/manage-faqs" component={() => <AdminOrLevel1Route component={ManageFaqsPage} />} />
       <Route path="/add-faq" component={() => <AdminOrLevel1Route component={AddFaqPage} />} />

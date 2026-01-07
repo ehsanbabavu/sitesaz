@@ -2513,6 +2513,12 @@ export class DbStorage implements IStorage {
           description: "مدیریت پلن‌های اشتراک و کاربران",
           icon: "Crown",
         },
+        {
+          name: "internal-chats",
+          displayName: "چت داخلی",
+          description: "سیستم گفتگوی داخلی بین مدیریت، فروشندگان و کاربران",
+          icon: "MessageCircle",
+        },
       ];
 
       for (const pluginData of pluginsToInitialize) {
