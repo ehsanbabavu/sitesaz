@@ -140,6 +140,12 @@ export function AppSidebar() {
   const unreadGuestChats = unreadGuestChatsData?.unreadCount ?? 0;
 
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [isWhatsappOpen, setIsWhatsappOpen] = useState(false);
+  const [isBusinessOpen, setIsBusinessOpen] = useState(false);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(false);
+  const [isUsersOpen, setIsUsersOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isEmailOpen, setIsEmailOpen] = useState(false);
 
   useEffect(() => {
     if (unreadGuestChats > 0) {
