@@ -2,7 +2,7 @@ import {
   Calendar, Home, Inbox, Search, Settings, MessageSquare, MessageCircle, 
   Ticket, Package, DollarSign, Wallet, Users, Crown, Truck, Receipt, 
   CreditCard, Bot, History, Database, List, Plus, FolderTree, ShoppingCart, 
-  MapPin, User, Send, Store, ChevronDown 
+  MapPin, User, Send, Store, ChevronDown, Mail 
 } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useAuth } from "@/hooks/use-auth"
@@ -167,6 +167,13 @@ export function AppSidebar() {
     ...(isBackupPluginEnabled ? [{ path: "/database-backup", label: "پشتیبان‌گیری", icon: Database }] : []),
   ];
 
+  const emailItems = [
+    { path: "/email-inbox", label: "صندوق دریافت", icon: Inbox },
+    { path: "/send-email", label: "ارسال ایمیل", icon: Send },
+    { path: "/sent-messages", label: "پیام‌های ارسالی", icon: Send },
+    { path: "/email-settings", label: "تنظیمات ایمیل", icon: Settings },
+  ];
+
   const userMenuItems = [{ path: "/", label: "پیشخوان", icon: Home }];
 
   const level2MenuItems = [
@@ -255,6 +262,7 @@ export function AppSidebar() {
               {renderCollapsibleMenu("واتس‌اپ", whatsappItems)}
               {renderCollapsibleMenu("تجاری", businessItems)}
               {renderCollapsibleMenu("انبارداری", inventoryItems)}
+              {isEmailPluginEnabled && renderCollapsibleMenu("ایمیل", emailItems)}
               {renderCollapsibleMenu("مدیریت کاربران", usersManagementItems)}
               {renderCollapsibleMenu("تنظیمات", settingsItems)}
               <li key="/plugins">
