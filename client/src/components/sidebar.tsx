@@ -127,66 +127,6 @@ export function AppSidebar() {
   });
   const isInternalChatsPluginEnabled = internalChatsPluginData?.isEnabled ?? true;
 
-  const communicationItems = [
-    ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare, badge: unreadGuestChats }] : []),
-    ...(isInternalChatsPluginEnabled ? [{ path: "/seller-chats", label: "چت کاربران", icon: MessageCircle }] : []),
-    { path: "/tickets", label: "تیکت‌ها", icon: Ticket },
-  ];
-
-  const whatsappItems = [
-    { path: "/whatsapp-chats", label: "چت واتس‌اپ", icon: MessageSquare },
-    { path: "/send-message", label: "ارسال پیام", icon: Send },
-    { path: "/admin/welcome-message", label: "پیام خوش آمدگویی", icon: MessageCircle },
-    { path: "/whatsapp-settings", label: "تنظیمات", icon: Settings },
-  ];
-
-  const businessItems = [
-    { path: "/received-orders", label: "سفارشات دریافتی", icon: Package },
-    { path: "/transactions", label: "تراکنش‌ها", icon: DollarSign },
-    ...(isCryptoPluginEnabled ? [{ path: "/crypto-transactions", label: "ارز دیجیتال", icon: Wallet }] : []),
-    { path: "/my-tickets", label: "تیکت‌ها", icon: Ticket },
-  ];
-
-  const inventoryItems = [
-    { path: "/products", label: "محصولات", icon: List },
-    { path: "/add-product", label: "افزودن محصول", icon: Plus },
-    { path: "/categories", label: "دسته‌بندی", icon: FolderTree },
-  ];
-
-  const usersManagementItems = [
-    { path: "/users", label: "کاربران", icon: Users },
-    ...(isSubscriptionPluginEnabled ? [{ path: "/subscriptions", label: "اشتراک‌ها", icon: Crown }] : []),
-  ];
-
-  const settingsItems = [
-    { path: "/shipping-settings", label: "ترابری", icon: Truck },
-    ...(isVatPluginEnabled ? [{ path: "/vat-settings", label: "مالیات", icon: Receipt }] : []),
-    { path: "/bank-card", label: "کارت بانکی", icon: CreditCard },
-    ...(isAiPluginEnabled ? [{ path: "/ai-token", label: "هوش مصنوعی", icon: Bot }] : []),
-    ...(isLoginLogsPluginEnabled ? [{ path: "/login-logs", label: "لاگ ورود", icon: History }] : []),
-    ...(isBackupPluginEnabled ? [{ path: "/database-backup", label: "پشتیبان‌گیری", icon: Database }] : []),
-  ];
-
-  const emailItems = [
-    { path: "/email-inbox", label: "صندوق دریافت", icon: Inbox },
-    { path: "/send-email", label: "ارسال ایمیل", icon: Send },
-    { path: "/sent-messages", label: "پیام‌های ارسالی", icon: Send },
-    { path: "/email-settings", label: "تنظیمات ایمیل", icon: Settings },
-  ];
-
-  const userMenuItems = [{ path: "/", label: "پیشخوان", icon: Home }];
-
-  const level2MenuItems = [
-    { path: "/products", label: "محصولات", icon: List },
-    { path: "/add-product", label: "افزودن محصول", icon: Plus },
-    { path: "/cart", label: "سبد خرید", icon: ShoppingCart },
-    { path: "/addresses", label: "آدرس‌ها", icon: MapPin },
-    { path: "/financial", label: "امور مالی", icon: Wallet },
-    ...(isInternalChatsPluginEnabled ? [{ path: "/chat-with-seller", label: "چت با مدیر", icon: MessageCircle }] : []),
-    { path: "/send-ticket", label: "ارسال تیکت", icon: Send },
-    { path: "/profile", label: "پروفایل", icon: User },
-  ];
-
   const { data: unreadGuestChats } = useQuery<number>({
     queryKey: ['/api/admin/guest-chats/unread-count'],
     queryFn: async () => {
@@ -196,6 +136,12 @@ export function AppSidebar() {
     enabled: !!user && user.role === "admin" && isGuestChatsPluginEnabled,
     refetchInterval: 30000,
   });
+
+  const communicationItems = [
+    ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare, badge: unreadGuestChats }] : []),
+    ...(isInternalChatsPluginEnabled ? [{ path: "/seller-chats", label: "چت کاربران", icon: MessageCircle }] : []),
+    { path: "/tickets", label: "تیکت‌ها", icon: Ticket },
+  ];
 
   const renderMenuItem = (item: { path: string; label: string; icon: any; badge?: number }) => (
     <li key={item.path}>
