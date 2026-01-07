@@ -244,7 +244,7 @@ export function AppSidebar() {
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
             <Store className="text-primary-foreground" />
           </div>
-          <h2 className="mr-3 text-lg font-bold text-foreground">ربات آریا بات</h2>
+          <h2 className="mr-3 text-lg font-bold text-foreground">سایت ساز رخش</h2>
         </div>
       </div>
       
