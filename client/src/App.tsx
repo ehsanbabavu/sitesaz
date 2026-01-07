@@ -38,7 +38,6 @@ import CryptoTransactions from "@/pages/user/crypto-transactions";
 import Financial from "@/pages/user/financial";
 import SuccessfulTransactions from "@/pages/user/successful-transactions";
 import ChatWithSeller from "@/pages/user/chat-with-seller";
-import CustomerChats from "@/pages/level1/customer-chats";
 import SellerChats from "@/pages/admin/seller-chats";
 import ShippingSettings from "@/pages/level1/shipping-settings";
 import VatSettings from "@/pages/level1/vat-settings";
@@ -304,7 +303,6 @@ function Router() {
       <Route path="/financial" component={() => <AdminOrLevel1OrLevel2Route component={WithLayout(Financial, "امور مالی")} />} />
       <Route path="/transactions" component={() => <AdminOrLevel1Route component={WithLayout(SuccessfulTransactions, "مدیریت تراکنش‌ها")} />} />
       <Route path="/crypto-transactions" component={() => <PluginAwareAdminRoute component={CryptoTransactions} pluginName="crypto-transactions" />} />
-      <Route path="/customer-chats" component={() => <AdminOrLevel1Route component={WithLayout(CustomerChats, "مدیریت چت با مشتریان")} />} />
       <Route path="/shipping-settings" component={() => <AdminOrLevel1Route component={ShippingSettings} />} />
       <Route path="/vat-settings" component={() => <AdminOrLevel1Route component={VatSettings} />} />
       <Route path="/bank-card" component={() => <AdminOrLevel1Route component={BankCard} />} />
