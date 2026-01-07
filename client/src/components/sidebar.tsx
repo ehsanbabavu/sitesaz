@@ -206,7 +206,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   
   const communicationItems = [
     ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare }] : []),
-    { path: "/seller-chats", label: "چت با فروشندگان", icon: MessageCircle },
+    { path: "/seller-chats", label: "چت کاربران", icon: MessageCircle },
     { path: "/tickets", label: "تیکت‌ها", icon: Ticket },
   ];
 

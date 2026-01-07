@@ -168,7 +168,7 @@ export default function SellerChats() {
 
   if (user?.role !== "admin") {
     return (
-      <DashboardLayout title="چت با فروشندگان">
+      <DashboardLayout title="چت کاربران">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -181,7 +181,7 @@ export default function SellerChats() {
 
   if (chatsLoading) {
     return (
-      <DashboardLayout title="چت با فروشندگان">
+      <DashboardLayout title="چت کاربران">
         <div className="p-6">
           <div className="flex items-center justify-center h-32">
             <div className="text-lg">در حال بارگذاری چت‌ها...</div>
@@ -192,14 +192,14 @@ export default function SellerChats() {
   }
 
   return (
-    <DashboardLayout title="چت با فروشندگان">
+    <DashboardLayout title="چت کاربران">
       <div className="flex h-[calc(100vh-10rem)] bg-background border rounded-lg overflow-hidden shadow-sm" data-testid="seller-chats-content">
         {/* Left Column: Sellers List */}
         <div className={`flex flex-col border-l w-full md:w-80 lg:w-96 bg-muted/5 ${selectedSellerId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
             <h2 className="font-semibold flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
-              فروشندگان
+              کاربران
               <Badge variant="secondary" className="mr-auto">
                 {sellers.length}
               </Badge>
