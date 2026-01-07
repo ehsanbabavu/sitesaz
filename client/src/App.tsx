@@ -364,14 +364,18 @@ function App() {
   const style = {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
+    "width": "100%",
+    "overflowX": "hidden"
   };
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SidebarProvider style={style as React.CSSProperties}>
-          <Toaster />
-          <Router />
+          <div className="w-full min-h-screen bg-background text-foreground">
+            <Toaster />
+            <Router />
+          </div>
         </SidebarProvider>
       </TooltipProvider>
     </QueryClientProvider>

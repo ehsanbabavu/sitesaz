@@ -118,12 +118,17 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden;
     font-family: 'Estedad', 'Vazirmatn', 'Tahoma', sans-serif;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   html {
     direction: rtl;
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 
