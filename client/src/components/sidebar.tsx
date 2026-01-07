@@ -138,6 +138,14 @@ export function AppSidebar() {
   });
   const unreadGuestChats = unreadGuestChatsData?.unreadCount ?? 0;
 
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+
+  useEffect(() => {
+    if (unreadGuestChats > 0) {
+      setIsMessagesOpen(true);
+    }
+  }, [unreadGuestChats]);
+
   const communicationItems = [
     ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare, badge: unreadGuestChats }] : []),
     ...(isInternalChatsPluginEnabled ? [{ path: "/seller-chats", label: "چت کاربران", icon: MessageCircle }] : []),
@@ -216,11 +224,15 @@ export function AppSidebar() {
     </li>
   );
 
-  const renderCollapsibleMenu = (label: string, items: { path: string; label: string; icon: any; badge?: number }[]) => {
+  const renderCollapsibleMenu = (label: string, items: { path: string; label: string; icon: any; badge?: number }[], isOpen?: boolean, onOpenChange?: (open: boolean) => void) => {
     const totalBadge = items.reduce((sum, item) => sum + (item.badge || 0), 0);
     
     return (
-      <Collapsible className="group/collapsible w-full">
+      <Collapsible 
+        open={isOpen} 
+        onOpenChange={onOpenChange}
+        className="group/collapsible w-full"
+      >
         <SidebarMenuItem className="list-none">
           <CollapsibleTrigger asChild>
             <SidebarMenuButton className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors relative">
@@ -290,13 +302,13 @@ export function AppSidebar() {
 
           {user?.role === "admin" && (
             <>
-              {renderCollapsibleMenu("پیام‌ها", communicationItems)}
-              {renderCollapsibleMenu("واتس‌اپ", whatsappItems)}
-              {renderCollapsibleMenu("تجاری", businessItems)}
-              {renderCollapsibleMenu("انبارداری", inventoryItems)}
-              {isEmailPluginEnabled && renderCollapsibleMenu("ایمیل", emailItems)}
-              {renderCollapsibleMenu("مدیریت کاربران", usersManagementItems)}
-              {renderCollapsibleMenu("تنظیمات", settingsItems)}
+              {renderCollapsibleMenu("پیام‌ها", communicationItems, isMessagesOpen, setIsMessagesOpen)}
+              {renderCollapsibleMenu("واتس‌اپ", whatsappItems, isWhatsappOpen, setIsWhatsappOpen)}
+              {renderCollapsibleMenu("تجاری", businessItems, isBusinessOpen, setIsBusinessOpen)}
+              {renderCollapsibleMenu("انبارداری", inventoryItems, isInventoryOpen, setIsInventoryOpen)}
+              {isEmailPluginEnabled && renderCollapsibleMenu("ایمیل", emailItems, isEmailOpen, setIsEmailOpen)}
+              {renderCollapsibleMenu("مدیریت کاربران", usersManagementItems, isUsersOpen, setIsUsersOpen)}
+              {renderCollapsibleMenu("تنظیمات", settingsItems, isSettingsOpen, setIsSettingsOpen)}
               <li key="/plugins">
                 <Link href="/plugins">
                   <Button 
