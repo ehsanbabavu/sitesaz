@@ -127,7 +127,7 @@ export function AppSidebar() {
   });
   const isInternalChatsPluginEnabled = internalChatsPluginData?.isEnabled ?? true;
 
-  const { data: unreadGuestChats } = useQuery<number>({
+  const { data: unreadGuestChatsData } = useQuery<{ unreadCount: number }>({
     queryKey: ['/api/admin/guest-chats/unread-count'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/admin/guest-chats/unread-count');
@@ -136,6 +136,7 @@ export function AppSidebar() {
     enabled: !!user && user.role === "admin" && isGuestChatsPluginEnabled,
     refetchInterval: 30000,
   });
+  const unreadGuestChats = unreadGuestChatsData?.unreadCount ?? 0;
 
   const communicationItems = [
     ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare, badge: unreadGuestChats }] : []),
