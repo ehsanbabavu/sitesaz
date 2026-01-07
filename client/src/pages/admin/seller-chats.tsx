@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { Send, MessageCircle, User, Clock, ArrowRight } from "lucide-react";
+import { Send, MessageCircle, User, Clock, ArrowRight, Users } from "lucide-react";
 import { type InternalChat, type User as UserType } from "@shared/schema";
 import { DashboardLayout } from "@/components/dashboard-layout";
 
@@ -193,171 +193,203 @@ export default function SellerChats() {
 
   return (
     <DashboardLayout title="چت با فروشندگان">
-      <div className="h-[calc(100vh-8rem)] flex gap-4" data-testid="seller-chats-content">
-        <div className={`w-full md:w-80 md:flex-shrink-0 ${selectedSellerId ? 'hidden md:block' : 'block'}`}>
-          <Card className="h-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <MessageCircle className="h-4 w-4" />
-                فروشندگان ({sellers.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 h-[calc(100%-5rem)]">
-              <ScrollArea className="h-full">
-                {sellers.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    هیچ فروشنده‌ای موجود نیست
-                  </div>
-                ) : (
-                  sellers.map((seller) => (
-                    <div
-                      key={seller.sellerId}
-                      className={`p-3 border-b border-border/50 hover:bg-muted/50 cursor-pointer transition-colors ${
-                        selectedSellerId === seller.sellerId
-                          ? "bg-primary/10 border-r-2 border-r-primary"
-                          : ""
-                      }`}
-                      onClick={() => setSelectedSellerId(seller.sellerId)}
-                      data-testid={`seller-chat-${seller.sellerId}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs">
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-sm truncate">
-                              {seller.sellerName}
-                            </h3>
-                            {seller.unreadCount > 0 && (
-                              <Badge key={seller.badgeKey} variant="destructive" className="h-5 px-1.5 text-xs">
-                                {seller.unreadCount}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {seller.latestMessage?.message || "بدون پیام"}
-                          </p>
-                          <span className="text-xs text-muted-foreground">
-                            {seller.latestMessage?.createdAt ? new Date(seller.latestMessage.createdAt).toLocaleDateString("fa-IR", {
+      <div className="flex h-[calc(100vh-10rem)] bg-background border rounded-lg overflow-hidden shadow-sm" data-testid="seller-chats-content">
+        {/* Left Column: Sellers List */}
+        <div className={`flex flex-col border-l w-full md:w-80 lg:w-96 bg-muted/5 ${selectedSellerId ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              فروشندگان
+              <Badge variant="secondary" className="mr-auto">
+                {sellers.length}
+              </Badge>
+            </h2>
+          </div>
+          
+          <ScrollArea className="flex-1">
+            <div className="divide-y divide-border/50">
+              {sellers.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <User className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <p>هیچ فروشنده‌ای یافت نشد</p>
+                </div>
+              ) : (
+                sellers.map((seller) => (
+                  <div
+                    key={seller.sellerId}
+                    className={`p-4 cursor-pointer transition-all duration-200 hover:bg-muted/50 relative ${
+                      selectedSellerId === seller.sellerId
+                        ? "bg-primary/5 border-r-4 border-r-primary shadow-inner"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedSellerId(seller.sellerId)}
+                    data-testid={`seller-chat-${seller.sellerId}`}
+                  >
+                    <div className="flex gap-3">
+                      <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          <User className="h-6 w-6" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-bold text-sm truncate text-foreground/90">
+                            {seller.sellerName}
+                          </h3>
+                          {seller.unreadCount > 0 && (
+                            <Badge key={seller.badgeKey} variant="destructive" className="animate-in zoom-in-50 duration-300 h-5 min-w-5 flex items-center justify-center p-0 rounded-full">
+                              {seller.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                          {seller.latestMessage?.message || "هنوز پیامی ارسال نشده است"}
+                        </p>
+                        {seller.latestMessage?.createdAt && (
+                          <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground/70">
+                            <Clock className="h-3 w-3" />
+                            {new Date(seller.latestMessage.createdAt).toLocaleDateString("fa-IR", {
                               month: "short",
                               day: "numeric",
                               hour: "2-digit",
                               minute: "2-digit",
-                            }) : ""}
-                          </span>
-                        </div>
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
         </div>
 
-        <div className={`w-full md:flex-1 ${selectedSellerId ? 'block' : 'hidden md:block'}`}>
+        {/* Right Column: Chat Window */}
+        <div className={`flex-1 flex flex-col bg-background ${selectedSellerId ? 'flex' : 'hidden md:flex'}`}>
           {selectedSellerId ? (
-            <Card className="h-full flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="md:hidden -mr-2"
-                    onClick={() => setSelectedSellerId(null)}
-                  >
-                    <ArrowRight className="h-5 w-5" />
-                  </Button>
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  چت با {sellers.find(s => s.sellerId === selectedSellerId)?.sellerName || "فروشنده"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col p-0">
-                <ScrollArea className="flex-1 p-4">
+            <>
+              {/* Chat Header */}
+              <div className="p-4 border-b flex items-center gap-3 bg-background/50 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => setSelectedSellerId(null)}
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+                <Avatar className="h-10 w-10 border shadow-sm">
+                  <AvatarFallback className="bg-primary/5 text-primary font-bold">
+                    {sellers.find(s => s.sellerId === selectedSellerId)?.sellerName?.charAt(0) || "S"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-bold text-sm text-foreground">
+                    {sellers.find(s => s.sellerId === selectedSellerId)?.sellerName}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] text-muted-foreground">در حال گفتگو</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages Content */}
+              <ScrollArea className="flex-1 bg-[url('/chat-bg.png')] bg-repeat bg-center opacity-95">
+                <div className="p-6 space-y-6">
                   {selectedSellerChats.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center text-muted-foreground">
-                        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">هنوز پیامی موجود نیست</p>
+                    <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                      <div className="bg-muted/30 p-6 rounded-full mb-4">
+                        <MessageCircle className="h-12 w-12 opacity-20" />
                       </div>
+                      <p className="text-sm font-medium">گفتگو را آغاز کنید</p>
+                      <p className="text-xs mt-1">هنوز پیامی با این فروشنده رد و بدل نشده است</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {selectedSellerChats.map((chat) => (
-                        <div
-                          key={chat.id}
-                          className={`flex ${chat.senderId === user?.id ? "justify-end" : "justify-start"}`}
-                        >
+                    selectedSellerChats.map((chat) => (
+                      <div
+                        key={chat.id}
+                        className={`flex ${chat.senderId === user?.id ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                      >
+                        <div className={`flex flex-col max-w-[85%] sm:max-w-[70%] group`}>
                           <div
-                            className={`max-w-[75%] rounded-lg px-3 py-2 ${
+                            className={`rounded-2xl px-4 py-3 shadow-sm ${
                               chat.senderId === user?.id
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
+                                ? "bg-primary text-primary-foreground rounded-br-none"
+                                : "bg-muted text-foreground rounded-bl-none"
                             }`}
                             data-testid={`message-${chat.id}`}
                           >
-                            <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
-                            <div className="flex items-center gap-1 mt-1">
-                              <Clock className="h-3 w-3 opacity-70" />
-                              <span className="text-xs opacity-70">
-                                {chat.createdAt ? new Date(chat.createdAt).toLocaleTimeString("fa-IR", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }) : ""}
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{chat.message}</p>
+                          </div>
+                          <div className={`flex items-center gap-2 mt-1 px-1 ${chat.senderId === user?.id ? "justify-end" : "justify-start"}`}>
+                            <span className="text-[10px] text-muted-foreground font-medium">
+                              {chat.createdAt ? new Date(chat.createdAt).toLocaleTimeString("fa-IR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }) : ""}
+                            </span>
+                            {chat.senderId === user?.id && (
+                              <span className={`text-[10px] ${chat.isRead ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                                {chat.isRead ? "✓✓ خوانده شد" : "✓ ارسال شد"}
                               </span>
-                              {chat.senderId === user?.id && (
-                                <span className="text-xs opacity-70 mr-1">
-                                  {chat.isRead ? "✓✓" : "✓"}
-                                </span>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
+                      </div>
+                    ))
                   )}
-                </ScrollArea>
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
 
-                <div className="border-t p-3">
-                  <div className="flex gap-2">
+              {/* Message Input Footer */}
+              <div className="p-4 border-t bg-muted/5">
+                <div className="flex gap-2 items-end max-w-4xl mx-auto">
+                  <div className="flex-1 relative">
                     <Textarea
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="پیام خود را بنویسید..."
-                      className="flex-1 min-h-[40px] max-h-[100px] resize-none"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="پیام خود را اینجا بنویسید..."
+                      className="min-h-[50px] max-h-[150px] pr-4 py-3 rounded-xl border-2 focus-visible:ring-primary/20 transition-all bg-background resize-none shadow-sm"
                       data-testid="input-message"
                     />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                      size="sm"
-                      data-testid="button-send"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Enter برای ارسال، Shift+Enter برای خط جدید
-                  </div>
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                    className="h-[50px] w-[50px] rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all"
+                    data-testid="button-send"
+                  >
+                    {sendMessageMutation.isPending ? (
+                      <div className="h-4 w-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="h-full flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>یک فروشنده را برای مشاهده چت انتخاب کنید</p>
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                  برای ارسال پیام از دکمه اینتر یا آیکون ارسال استفاده کنید
+                </p>
               </div>
-            </Card>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-12 bg-muted/5">
+              <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <MessageCircle className="h-12 w-12 text-primary/40" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground/80 mb-2">انتخاب گفتگو</h3>
+              <p className="max-w-xs text-center text-sm leading-relaxed">
+                لطفاً برای مشاهده پیام‌ها و شروع گفتگو، یکی از فروشندگان را از لیست سمت راست انتخاب کنید.
+              </p>
+            </div>
           )}
         </div>
       </div>

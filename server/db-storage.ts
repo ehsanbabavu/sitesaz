@@ -1655,60 +1655,20 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async getUnreadMessagesCountForUser(userId: string, userRole: string): Promise<number> {
-    try {
-      if (userRole === "user_level_2") {
-        // کاربران سطح 2: پیام‌های خوانده نشده از والد (فروشنده)
-        const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-        if (!user[0] || !user[0].parentUserId) return 0;
-        
-        const result = await db.select({ count: sql<number>`count(*)` })
-          .from(internalChats)
-          .where(
-            and(
-              eq(internalChats.senderId, user[0].parentUserId),
-              eq(internalChats.receiverId, userId),
-              eq(internalChats.isRead, false)
-            )
-          );
-        
-        return result[0]?.count || 0;
-      } else if (userRole === "user_level_1") {
-        // کاربران سطح 1: تمام پیام‌های خوانده نشده از زیرمجموعه‌ها
-        const subUsers = await db.select({ id: users.id })
-          .from(users)
-          .where(eq(users.parentUserId, userId));
-        
-        if (subUsers.length === 0) return 0;
-        
-        const subUserIds = subUsers.map(user => user.id);
-        
-        const result = await db.select({ count: sql<number>`count(*)` })
-          .from(internalChats)
-          .where(
-            and(
-              inArray(internalChats.senderId, subUserIds),
-              eq(internalChats.receiverId, userId),
-              eq(internalChats.isRead, false)
-            )
-          );
-        
-        return result[0]?.count || 0;
-      }
-      
-      return 0;
-    } catch (error) {
-      console.error("Error getting unread messages count:", error);
-      return 0;
-    }
-  }
-
   async markAllMessagesAsReadForUser(userId: string, userRole: string): Promise<boolean> {
     try {
-      if (userRole === "user_level_2") {
-        // کاربران سطح 2: علامت‌گذاری پیام‌های دریافتی از والد
+      if (userRole === "admin") {
+        await db.update(internalChats)
+          .set({ isRead: true })
+          .where(
+            and(
+              eq(internalChats.receiverId, userId),
+              eq(internalChats.isRead, false)
+            )
+          );
+      } else if (userRole === "user_level_2") {
         const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-        if (!user[0] || !user[0].parentUserId) return true; // No parent means no messages to mark, which is success
+        if (!user[0] || !user[0].parentUserId) return true;
         
         await db.update(internalChats)
           .set({ isRead: true })
@@ -1720,12 +1680,11 @@ export class DbStorage implements IStorage {
             )
           );
       } else if (userRole === "user_level_1") {
-        // کاربران سطح 1: علامت‌گذاری پیام‌های دریافتی از زیرمجموعه‌ها
         const subUsers = await db.select({ id: users.id })
           .from(users)
           .where(eq(users.parentUserId, userId));
         
-        if (subUsers.length === 0) return true; // No sub-users means no messages to mark, which is success
+        if (subUsers.length === 0) return true;
         
         const subUserIds = subUsers.map(user => user.id);
         
@@ -1744,6 +1703,65 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error("Error marking messages as read:", error);
       return false;
+    }
+  }
+
+  async markMessagesFromSenderAsRead(senderId: string, receiverId: string): Promise<boolean> {
+    try {
+      await db.update(internalChats)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(internalChats.senderId, senderId),
+            eq(internalChats.receiverId, receiverId),
+            eq(internalChats.isRead, false)
+          )
+        );
+      return true;
+    } catch (error) {
+      console.error("Error marking messages from sender as read:", error);
+      return false;
+    }
+  }
+
+  async getUnreadMessagesCountForUser(userId: string, userRole: string): Promise<number> {
+    try {
+      let whereClause;
+      if (userRole === "admin") {
+        whereClause = and(
+          eq(internalChats.receiverId, userId),
+          eq(internalChats.isRead, false)
+        );
+      } else if (userRole === "user_level_2") {
+        const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        if (!user[0] || !user[0].parentUserId) return 0;
+        whereClause = and(
+          eq(internalChats.senderId, user[0].parentUserId),
+          eq(internalChats.receiverId, userId),
+          eq(internalChats.isRead, false)
+        );
+      } else if (userRole === "user_level_1") {
+        const subUsers = await db.select({ id: users.id })
+          .from(users)
+          .where(eq(users.parentUserId, userId));
+        if (subUsers.length === 0) return 0;
+        const subUserIds = subUsers.map(user => user.id);
+        whereClause = and(
+          inArray(internalChats.senderId, subUserIds),
+          eq(internalChats.receiverId, userId),
+          eq(internalChats.isRead, false)
+        );
+      } else {
+        return 0;
+      }
+      
+      const result = await db.select({ count: sql<number>`count(*)` })
+        .from(internalChats)
+        .where(whereClause);
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error("Error getting unread messages count:", error);
+      return 0;
     }
   }
 

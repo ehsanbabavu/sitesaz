@@ -145,6 +145,7 @@ export interface IStorage {
   getInternalChatsForSeller(sellerId: string): Promise<(InternalChat & { senderName?: string; receiverName?: string })[]>;
   createInternalChat(chat: InsertInternalChat): Promise<InternalChat>;
   markInternalChatAsRead(id: string): Promise<InternalChat | undefined>;
+  markMessagesFromSenderAsRead(senderId: string, receiverId: string): Promise<boolean>;
   getUnreadMessagesCountForUser(userId: string, userRole: string): Promise<number>;
   markAllMessagesAsReadForUser(userId: string, userRole: string): Promise<boolean>;
   
