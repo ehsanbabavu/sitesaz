@@ -1,11 +1,20 @@
-import { Calendar, Home, Inbox, Search, Settings, MessageSquare, MessageCircle, Ticket, Package, DollarSign, Wallet, Users, Crown, Truck, Receipt, CreditCard, Bot, History, Database, List, Plus, FolderTree, ShoppingCart, MapPin, User, Send, Store } from "lucide-react"
+import { 
+  Calendar, Home, Inbox, Search, Settings, MessageSquare, MessageCircle, 
+  Ticket, Package, DollarSign, Wallet, Users, Crown, Truck, Receipt, 
+  CreditCard, Bot, History, Database, List, Plus, FolderTree, ShoppingCart, 
+  MapPin, User, Send, Store, ChevronDown 
+} from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/queryClient"
-import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger, useSidebar, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "./ui/sidebar"
+import { 
+  Sidebar, SidebarContent, SidebarProvider, SidebarTrigger, useSidebar, 
+  SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupContent, SidebarGroupLabel 
+} from "./ui/sidebar"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 export function AppSidebar() {
   const { user } = useAuth();
@@ -171,6 +180,56 @@ export function AppSidebar() {
     { path: "/profile", label: "پروفایل", icon: User },
   ];
 
+  const renderMenuItem = (item: { path: string; label: string; icon: any }) => (
+    <li key={item.path}>
+      <Button 
+        variant={isActive(item.path) ? "default" : "ghost"} 
+        className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
+        onClick={() => handleNavigate(item.path)}
+      >
+        <item.icon className="w-5 h-5 ml-2" />
+        {item.label}
+      </Button>
+    </li>
+  );
+
+  const renderCollapsibleMenu = (label: string, items: { path: string; label: string; icon: any }[]) => (
+    <Collapsible className="group/collapsible w-full">
+      <SidebarMenuItem className="list-none">
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors">
+            <div className="flex items-center">
+              <span className="text-sm font-medium">{label}</span>
+            </div>
+            <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <ul className="mt-1 space-y-1 pr-4 border-r border-border/50 mr-2">
+            {items.map((item) => (
+              <li key={item.path}>
+                <Link href={item.path}>
+                  <Button 
+                    variant={isActive(item.path) ? "default" : "ghost"} 
+                    size="sm" 
+                    className={cn(
+                      "w-full justify-start text-xs", 
+                      isActive(item.path) && "bg-primary text-primary-foreground"
+                    )}
+                    onClick={() => sidebar?.setOpenMobile(false)}
+                  >
+                    <item.icon className="w-4 h-4 ml-2" />
+                    {item.label}
+                  </Button>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+
   return (
     <aside className="w-64 bg-card border-l border-border flex flex-col sidebar-transition" data-testid="sidebar-navigation">
       <div className="p-6 border-b border-border" data-testid="section-logo">
@@ -183,184 +242,38 @@ export function AppSidebar() {
       </div>
       
       <nav className="flex-1 p-4 custom-scrollbar overflow-y-auto" data-testid="nav-main-menu">
-        <ul className="space-y-1">
-          {user?.role !== "admin" && userMenuItems.map((item) => (
-            <li key={item.path}>
-              <Button 
-                variant={isActive(item.path) ? "default" : "ghost"} 
-                className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
-                onClick={() => handleNavigate(item.path)}
-              >
-                <item.icon className="w-5 h-5 ml-2" />
-                {item.label}
-              </Button>
-            </li>
-          ))}
+        <SidebarMenu className="space-y-1">
+          {user?.role !== "admin" && userMenuItems.map(renderMenuItem)}
 
-          {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product"].includes(item.path)).map((item) => (
-            <li key={item.path}>
-              <Button 
-                variant={isActive(item.path) ? "default" : "ghost"} 
-                className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
-                onClick={() => handleNavigate(item.path)}
-              >
-                <item.icon className="w-5 h-5 ml-2" />
-                {item.label}
-              </Button>
-            </li>
-          ))}
+          {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product"].includes(item.path)).map(renderMenuItem)}
 
-          {user?.role === "user_level_2" && level2MenuItems.map((item) => (
-            <li key={item.path}>
-              <Button 
-                variant={isActive(item.path) ? "default" : "ghost"} 
-                className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
-                onClick={() => handleNavigate(item.path)}
-              >
-                <item.icon className="w-5 h-5 ml-2" />
-                {item.label}
-              </Button>
-            </li>
-          ))}
+          {user?.role === "user_level_2" && level2MenuItems.map(renderMenuItem)}
 
           {user?.role === "admin" && (
             <>
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">پیام‌ها</span>
-                <div className="mt-1 space-y-1">
-                  {communicationItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">واتس‌اپ</span>
-                <div className="mt-1 space-y-1">
-                  {whatsappItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">تجاری</span>
-                <div className="mt-1 space-y-1">
-                  {businessItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">انبارداری</span>
-                <div className="mt-1 space-y-1">
-                  {inventoryItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">مدیریت کاربران</span>
-                <div className="mt-1 space-y-1">
-                  {usersManagementItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">تنظیمات</span>
-                <div className="mt-1 space-y-1">
-                  {settingsItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                  <Link href="/plugins">
-                    <Button variant={isActive("/plugins") ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive("/plugins") && "bg-primary text-primary-foreground")}>
-                      <Plus className="w-4 h-4 ml-2" />
-                      پلاگین‌ها
-                    </Button>
-                  </Link>
-                </div>
-              </li>
+              {renderCollapsibleMenu("پیام‌ها", communicationItems)}
+              {renderCollapsibleMenu("واتس‌اپ", whatsappItems)}
+              {renderCollapsibleMenu("تجاری", businessItems)}
+              {renderCollapsibleMenu("انبارداری", inventoryItems)}
+              {renderCollapsibleMenu("مدیریت کاربران", usersManagementItems)}
+              {renderCollapsibleMenu("تنظیمات", [
+                ...settingsItems,
+                { path: "/plugins", label: "پلاگین‌ها", icon: Plus }
+              ])}
             </>
           )}
 
           {user?.role === "user_level_1" && (
             <>
-              <li className="pt-2 border-t border-border mt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">بیزنس</span>
-                <div className="mt-1 space-y-1">
-                  {businessItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">انبارداری</span>
-                <div className="mt-1 space-y-1">
-                  {inventoryItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
-              <li className="pt-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">تنظیمات</span>
-                <div className="mt-1 space-y-1">
-                  {settingsItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
-                      <Button variant={isActive(item.path) ? "default" : "ghost"} size="sm" className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}>
-                        <item.icon className="w-4 h-4 ml-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              </li>
+              <div className="pt-4 pb-2">
+                <span className="text-xs text-muted-foreground px-3 font-medium">بخش فروشگاه</span>
+              </div>
+              {renderCollapsibleMenu("بیزنس", businessItems)}
+              {renderCollapsibleMenu("انبارداری", inventoryItems)}
+              {renderCollapsibleMenu("تنظیمات", settingsItems)}
             </>
           )}
-        </ul>
+        </SidebarMenu>
       </nav>
 
       <div className="p-4 border-t border-border" data-testid="section-user-footer">
