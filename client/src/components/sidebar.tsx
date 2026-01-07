@@ -4,6 +4,7 @@ import {
   CreditCard, Bot, History, Database, List, Plus, FolderTree, ShoppingCart, 
   MapPin, User, Send, Store, ChevronDown, Mail 
 } from "lucide-react"
+import React, { useState, useEffect } from "react"
 import { Link, useLocation } from "wouter"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
