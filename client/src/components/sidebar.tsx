@@ -128,7 +128,7 @@ export function AppSidebar() {
   const isInternalChatsPluginEnabled = internalChatsPluginData?.isEnabled ?? true;
 
   const communicationItems = [
-    ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare }] : []),
+    ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare, badge: unreadGuestChats }] : []),
     ...(isInternalChatsPluginEnabled ? [{ path: "/seller-chats", label: "چت کاربران", icon: MessageCircle }] : []),
     { path: "/tickets", label: "تیکت‌ها", icon: Ticket },
   ];
@@ -187,55 +187,86 @@ export function AppSidebar() {
     { path: "/profile", label: "پروفایل", icon: User },
   ];
 
-  const renderMenuItem = (item: { path: string; label: string; icon: any }) => (
+  const { data: unreadGuestChats } = useQuery<number>({
+    queryKey: ['/api/admin/guest-chats/unread-count'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/guest-chats/unread-count');
+      return response.json();
+    },
+    enabled: !!user && user.role === "admin" && isGuestChatsPluginEnabled,
+    refetchInterval: 30000,
+  });
+
+  const renderMenuItem = (item: { path: string; label: string; icon: any; badge?: number }) => (
     <li key={item.path}>
       <Button 
         variant={isActive(item.path) ? "default" : "ghost"} 
-        className={cn("w-full justify-start", isActive(item.path) && "bg-primary text-primary-foreground")}
+        className={cn("w-full justify-start relative", isActive(item.path) && "bg-primary text-primary-foreground")}
         onClick={() => handleNavigate(item.path)}
       >
         <item.icon className="w-5 h-5 ml-2" />
         {item.label}
+        {item.badge !== undefined && item.badge > 0 && (
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+            {item.badge > 99 ? "+99" : item.badge}
+          </span>
+        )}
       </Button>
     </li>
   );
 
-  const renderCollapsibleMenu = (label: string, items: { path: string; label: string; icon: any }[]) => (
-    <Collapsible className="group/collapsible w-full">
-      <SidebarMenuItem className="list-none">
-        <CollapsibleTrigger asChild>
-          <SidebarMenuButton className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors">
-            <div className="flex items-center">
-              <span className="text-sm font-medium">{label}</span>
-            </div>
-            <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-          </SidebarMenuButton>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <ul className="mt-1 space-y-1 pr-4 border-r border-border/50 mr-2">
-            {items.map((item) => (
-              <li key={item.path}>
-                <Link href={item.path}>
-                  <Button 
-                    variant={isActive(item.path) ? "default" : "ghost"} 
-                    size="sm" 
-                    className={cn(
-                      "w-full justify-start text-xs", 
-                      isActive(item.path) && "bg-primary text-primary-foreground"
-                    )}
-                    onClick={() => sidebar?.setOpenMobile(false)}
-                  >
-                    <item.icon className="w-4 h-4 ml-2" />
-                    {item.label}
-                  </Button>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </CollapsibleContent>
-      </SidebarMenuItem>
-    </Collapsible>
-  );
+  const renderCollapsibleMenu = (label: string, items: { path: string; label: string; icon: any; badge?: number }[]) => {
+    const totalBadge = items.reduce((sum, item) => sum + (item.badge || 0), 0);
+    
+    return (
+      <Collapsible className="group/collapsible w-full">
+        <SidebarMenuItem className="list-none">
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors relative">
+              <div className="flex items-center">
+                <span className="text-sm font-medium">{label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {totalBadge > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                    {totalBadge > 99 ? "+99" : totalBadge}
+                  </span>
+                )}
+                <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </div>
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <ul className="mt-1 space-y-1 pr-4 border-r border-border/50 mr-2">
+              {items.map((item) => (
+                <li key={item.path}>
+                  <Link href={item.path}>
+                    <Button 
+                      variant={isActive(item.path) ? "default" : "ghost"} 
+                      size="sm" 
+                      className={cn(
+                        "w-full justify-start text-xs relative", 
+                        isActive(item.path) && "bg-primary text-primary-foreground"
+                      )}
+                      onClick={() => sidebar?.setOpenMobile(false)}
+                    >
+                      <item.icon className="w-4 h-4 ml-2" />
+                      {item.label}
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                          {item.badge > 99 ? "+99" : item.badge}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CollapsibleContent>
+        </SidebarMenuItem>
+      </Collapsible>
+    );
+  };
 
   return (
     <aside className="w-64 bg-card border-l border-border flex flex-col sidebar-transition" data-testid="sidebar-navigation">
