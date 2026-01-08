@@ -124,7 +124,7 @@ export default function TicketManagement() {
       setAdminReply("");
       toast({
         title: "✅ موفقیت",
-        description: "پاسخ با موفقیت ارسال شد",
+        description: "پاسخ با موفقیت ارسال شد و وضعیت تیکت به خوانده شده تغییر یافت",
       });
     },
     onError: () => {
