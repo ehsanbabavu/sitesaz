@@ -6,7 +6,6 @@
 
 **January 08, 2026**: Sidebar menu reorganization
 - Moved "Crypto Transactions" (ارز دیجیتال) menu item from "Business" (تجاری) group to "Settings" (تنظیمات) group in the sidebar.
-- Removed "Bank Card" (کارت بانکی) menu item from the sidebar.
 
 **January 02, 2026**: UI improvements and Subscription plugin
 - Made email settings page full-width and removed internal max-width constraints.
