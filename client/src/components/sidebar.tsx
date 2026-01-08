@@ -332,6 +332,7 @@ export function AppSidebar() {
 
           {user?.role === "user_level_1" && (
             <>
+              {renderMenuItem({ path: "/tickets", label: "تیکت‌ها", icon: Ticket })}
               {/* بخش فروشگاه حذف شد */}
             </>
           )}
