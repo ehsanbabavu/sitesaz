@@ -4,6 +4,9 @@
 
 # Recent Changes
 
+**January 08, 2026**: Sidebar menu reorganization
+- Moved "Crypto Transactions" (ارز دیجیتال) menu item from "Business" (تجاری) group to "Settings" (تنظیمات) group in the sidebar.
+
 **January 02, 2026**: UI improvements and Subscription plugin
 - Made email settings page full-width and removed internal max-width constraints.
 - Moved "Save Changes" button in email settings to the right (RTL support).

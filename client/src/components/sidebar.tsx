@@ -169,7 +169,6 @@ export function AppSidebar() {
   const businessItems = [
     { path: "/received-orders", label: "سفارشات دریافتی", icon: Package },
     { path: "/transactions", label: "تراکنش‌ها", icon: DollarSign },
-    ...(isCryptoPluginEnabled ? [{ path: "/crypto-transactions", label: "ارز دیجیتال", icon: Wallet }] : []),
     { path: "/my-tickets", label: "تیکت‌ها", icon: Ticket },
   ];
 
@@ -188,6 +187,7 @@ export function AppSidebar() {
     { path: "/shipping-settings", label: "ترابری", icon: Truck },
     ...(isVatPluginEnabled ? [{ path: "/vat-settings", label: "مالیات", icon: Receipt }] : []),
     { path: "/bank-card", label: "کارت بانکی", icon: CreditCard },
+    ...(isCryptoPluginEnabled ? [{ path: "/crypto-transactions", label: "ارز دیجیتال", icon: Wallet }] : []),
     ...(isAiPluginEnabled ? [{ path: "/ai-token", label: "هوش مصنوعی", icon: Bot }] : []),
     ...(isLoginLogsPluginEnabled ? [{ path: "/login-logs", label: "لاگ ورود", icon: History }] : []),
     ...(isBackupPluginEnabled ? [{ path: "/database-backup", label: "پشتیبان‌گیری", icon: Database }] : []),
