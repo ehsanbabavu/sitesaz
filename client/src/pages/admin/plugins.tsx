@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { createAuthenticatedRequest } from "@/lib/auth";
-import { Puzzle, Plus, Trash2, MessageCircle, Settings, Loader2, MessageSquare, Ticket, Wallet, Package, Crown, Bot, History, Database, Receipt, Truck, CreditCard } from "lucide-react";
+import { Puzzle, Plus, Trash2, MessageCircle, Settings, Loader2, MessageSquare, Ticket, Wallet, Package, Crown, Bot, History, Database, Receipt, Truck, CreditCard, Mail } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
 interface Plugin {
