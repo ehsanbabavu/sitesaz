@@ -584,6 +584,14 @@ export class DbStorage implements IStorage {
     return result.rowCount! > 0;
   }
 
+  async markTicketAsRead(id: string): Promise<Ticket | undefined> {
+    const result = await db.update(tickets)
+      .set({ status: "read" })
+      .where(eq(tickets.id, id))
+      .returning();
+    return result[0];
+  }
+
   // Subscriptions
   async getSubscription(id: string): Promise<Subscription | undefined> {
     const result = await db.select().from(subscriptions).where(eq(subscriptions.id, id)).limit(1);

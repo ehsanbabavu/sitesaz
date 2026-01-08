@@ -161,6 +161,20 @@ export default function TicketManagement() {
     },
   });
 
+  // Mark as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (ticketId: string) => {
+      const response = await createAuthenticatedRequest(`/api/tickets/${ticketId}/read`, {
+        method: "PATCH",
+      });
+      if (!response.ok) throw new Error("خطا در تغییر وضعیت تیکت");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+    },
+  });
+
   // Helper function to get user for ticket
   const getUserForTicket = (userId: string) => {
     return users.find(user => user.id === userId);
@@ -272,6 +286,9 @@ export default function TicketManagement() {
   const handleReply = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setIsReplyDialogOpen(true);
+    if (ticket.status === "unread") {
+      markAsReadMutation.mutate(ticket.id);
+    }
   };
 
   const handleSubmitReply = (e: React.FormEvent) => {

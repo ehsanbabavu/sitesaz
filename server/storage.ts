@@ -25,6 +25,7 @@ export interface IStorage {
   createTicket(ticket: InsertTicket): Promise<Ticket>;
   updateTicket(id: string, ticket: Partial<Ticket>): Promise<Ticket | undefined>;
   deleteTicket(id: string): Promise<boolean>;
+  markTicketAsRead(id: string): Promise<Ticket | undefined>;
   
   // Subscriptions
   getSubscription(id: string): Promise<Subscription | undefined>;
