@@ -332,12 +332,7 @@ export function AppSidebar() {
 
           {user?.role === "user_level_1" && (
             <>
-              <div className="pt-4 pb-2">
-                <span className="text-xs text-muted-foreground px-3 font-medium">بخش فروشگاه</span>
-              </div>
-              {renderCollapsibleMenu("بیزنس", businessItems)}
-              {renderCollapsibleMenu("انبارداری", inventoryItems)}
-              {renderCollapsibleMenu("تنظیمات", settingsItems)}
+              {/* بخش فروشگاه حذف شد */}
             </>
           )}
         </SidebarMenu>
