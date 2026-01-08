@@ -165,7 +165,6 @@ export default function MyTickets() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-foreground">تیکت‌های من</h2>
-            <p className="text-muted-foreground">مشاهده و پیگیری تیکت‌های ارسالی</p>
           </div>
           <Badge variant="secondary" className="text-sm">
             {tickets.length} تیکت
