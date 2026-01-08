@@ -127,6 +127,8 @@ export default function PluginsManagement() {
         return { label: "اشتراک‌ها", icon: Crown, description: "سیستم مدیریت اشتراک و سطوح دسترسی" };
       case 'ai':
         return { label: "هوش مصنوعی", icon: Bot, description: "تنظیمات و مدیریت سرویس‌های هوش مصنوعی" };
+      case 'email':
+        return { label: "ایمیل", icon: Mail, description: "مدیریت و ارسال ایمیل‌ها، تنظیمات SMTP و نمونه‌های ایمیل" };
       case 'login-logs':
         return { label: "لاگ ورود", icon: History, description: "مشاهده تاریخچه ورود کاربران به سیستم" };
       case 'backup':
