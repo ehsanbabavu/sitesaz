@@ -186,7 +186,6 @@ export function AppSidebar() {
   const settingsItems = [
     { path: "/shipping-settings", label: "ترابری", icon: Truck },
     ...(isVatPluginEnabled ? [{ path: "/vat-settings", label: "مالیات", icon: Receipt }] : []),
-    { path: "/bank-card", label: "کارت بانکی", icon: CreditCard },
     ...(isCryptoPluginEnabled ? [{ path: "/crypto-transactions", label: "ارز دیجیتال", icon: Wallet }] : []),
     ...(isAiPluginEnabled ? [{ path: "/ai-token", label: "هوش مصنوعی", icon: Bot }] : []),
     ...(isLoginLogsPluginEnabled ? [{ path: "/login-logs", label: "لاگ ورود", icon: History }] : []),
