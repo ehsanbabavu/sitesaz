@@ -121,8 +121,8 @@ export default function PluginsManagement() {
         return { label: "تیکت‌ها", icon: Ticket, description: "سیستم تیکتینگ و پشتیبانی کاربران" };
       case 'crypto-transactions':
         return { label: "ارز دیجیتال", icon: Wallet, description: "مدیریت تراکنش‌های کریپتو و درگاه پرداخت ارز دیجیتال" };
-      case 'received-orders':
-        return { label: "سفارشات", icon: Package, description: "مدیریت سفارشات دریافتی از مشتریان" };
+      case 'guest-chats':
+        return { label: "چت مهمانان", icon: MessageSquare, description: "چت آنلاین با مهمانان سایت، پشتیبانی آنلاین و پاسخ‌دهی به سوالات کاربران" };
       case 'subscriptions':
         return { label: "اشتراک‌ها", icon: Crown, description: "سیستم مدیریت اشتراک و سطوح دسترسی" };
       case 'ai':
