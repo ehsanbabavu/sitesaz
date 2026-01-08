@@ -146,12 +146,18 @@ export function AppSidebar() {
   const [isUsersOpen, setIsUsersOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [isTicketsOpen, setIsTicketsOpen] = useState(false);
 
   useEffect(() => {
     if (unreadGuestChats > 0) {
       setIsMessagesOpen(true);
     }
   }, [unreadGuestChats]);
+
+  const ticketItems = [
+    { path: "/my-tickets", label: "تیکت‌های من", icon: Ticket },
+    { path: "/send-ticket", label: "ارسال تیکت", icon: Send },
+  ];
 
   const communicationItems = [
     ...(isGuestChatsPluginEnabled ? [{ path: "/guest-chats", label: "چت مهمانان", icon: MessageSquare, badge: unreadGuestChats }] : []),
@@ -332,7 +338,7 @@ export function AppSidebar() {
 
           {user?.role === "user_level_1" && (
             <>
-              {renderMenuItem({ path: "/my-tickets", label: "تیکت‌های من", icon: Ticket })}
+              {renderCollapsibleMenu("تیکت‌ها", ticketItems, isTicketsOpen, setIsTicketsOpen)}
               {/* بخش فروشگاه حذف شد */}
             </>
           )}
