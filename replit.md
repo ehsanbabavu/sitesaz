@@ -1,6 +1,38 @@
 # Overview
 
-**Ariya Bot** is an intelligent 24/7 customer support assistant and a modern, full-stack TypeScript Persian e-commerce platform. It aims to transform customer communication and streamline online business management, offering features from automated customer interactions to order processing. The project provides a comprehensive web application built for the Persian market, including intelligent customer support, e-commerce, user management, ticketing, inventory control, and subscription services with role-based access. It features a fully localized Farsi UI with RTL support, a responsive mobile-first design, and AI-powered functionalities like smart ordering and WhatsApp-based deposit receipt processing, enhancing user experience through advanced AI and robust system architecture.
+**Ariya Bot** is an intelligent 24/7 customer support assistant and a modern, full-stack TypeScript Persian e-commerce platform.
+
+## How to Run
+
+- **Start**: Use the "Start application" workflow (runs `npm run dev`) — serves on port 5000
+- **Database schema**: `npm run db:push` (uses Replit's built-in PostgreSQL via `DATABASE_URL`)
+- **Build for production**: `npm run build && npm start`
+
+## Default Credentials (auto-seeded on first run)
+
+- Admin: username `ehsan`, password `admin123`
+- Test seller (Level 1): username `test_seller`, password `test123`
+
+## Optional Secrets
+
+The app runs without these but some features will be disabled:
+
+| Secret | Feature |
+|--------|---------|
+| `GEMINI_API_KEY` or `OPENAI_API_KEY` | AI customer support / chat |
+| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Email sending |
+| `CARDANOSCAN_API_KEY` | Cardano blockchain lookup |
+| `TRONGRID_API_KEY` | TRON blockchain lookup |
+| `JWT_SECRET` | Persistent JWT signing (auto-generated in dev) |
+
+## Stack
+
+- **Frontend**: React 18 + Vite + Tailwind CSS (RTL/Farsi)
+- **Backend**: Express + TypeScript (tsx)
+- **Database**: PostgreSQL via Drizzle ORM
+- **Auth**: Passport.js (local + Google OAuth)
+
+--- It aims to transform customer communication and streamline online business management, offering features from automated customer interactions to order processing. The project provides a comprehensive web application built for the Persian market, including intelligent customer support, e-commerce, user management, ticketing, inventory control, and subscription services with role-based access. It features a fully localized Farsi UI with RTL support, a responsive mobile-first design, and AI-powered functionalities like smart ordering and WhatsApp-based deposit receipt processing, enhancing user experience through advanced AI and robust system architecture.
 
 # Recent Changes
 
