@@ -1,14 +1,11 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Avatar } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { PersianDatePicker } from "@/components/persian-date-picker";
 import { createAuthenticatedRequest } from "@/lib/auth";
-import { CheckCircle, Send, Paperclip, Clock, X } from "lucide-react";
+import { CheckCircle, Send, Paperclip, X } from "lucide-react";
 
 export default function SendEmailPage() {
   const [to, setTo] = useState("");
@@ -17,8 +14,6 @@ export default function SendEmailPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [useSchedule, setUseSchedule] = useState(false);
-  const [scheduledAt, setScheduledAt] = useState("");
   const validateEmail = (email: string) => {
     if (!email) return false;
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -49,7 +44,6 @@ export default function SendEmailPage() {
       form.append('to', to.trim());
       form.append('subject', subject);
       form.append('message', message);
-      if (useSchedule && scheduledAt) form.append('scheduledAt', scheduledAt);
       attachments.forEach((f) => form.append('attachments', f));
 
       const res = await createAuthenticatedRequest('/api/emails/send', {
@@ -60,7 +54,6 @@ export default function SendEmailPage() {
       if (!res.ok) throw new Error(data?.message || 'خطا در ارسال');
 
       setResult({ ok: true, text: 'ایمیل با موفقیت ارسال شد' });
-      setTo(''); setCc(''); setBcc(''); setSubject(''); setMessage(''); setAttachments([]);
       setTo(''); setSubject(''); setMessage(''); setAttachments([]);
     } catch (err: any) {
       setResult({ ok: false, text: err?.message || 'خطا در ارسال ایمیل' });
@@ -122,21 +115,7 @@ export default function SendEmailPage() {
                   <Button variant="ghost" onClick={() => { setTo(''); setSubject(''); setMessage(''); setAttachments([]); }}>پاک کردن</Button>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <Clock className="w-4 h-4" />
-                  <div className="text-sm">زمان‌بندی ارسال</div>
-                  <Switch checked={useSchedule} onCheckedChange={(v: any) => setUseSchedule(Boolean(v))} />
-                </div>
-              </div>
-
-              {useSchedule && (
-                <div className="mt-2">
-                  <Label>انتخاب تاریخ و زمان</Label>
-                  <div className="mt-1">
-                    <PersianDatePicker value={scheduledAt} onChange={(v) => setScheduledAt(v)} placeholder="تاریخ را انتخاب کنید" />
-                  </div>
-                </div>
-              )}
+              
 
               {result && (
                 <div className={`mt-4 p-3 rounded-md ${result.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>

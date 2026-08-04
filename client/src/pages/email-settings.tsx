@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Mail, Settings2, Globe, CheckCircle2, AlertCircle, Save, ExternalLink } from "lucide-react";
+import { Mail, Settings2, Globe, CheckCircle2, AlertCircle, Save } from "lucide-react";
 import { createAuthenticatedRequest } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface EmailSettings {
   emailPrefix: string;
+  domain?: string;
 }
 
 export default function EmailSettings() {
@@ -37,13 +38,8 @@ export default function EmailSettings() {
     }
   }, [settings?.emailPrefix]);
 
-  // دریافت نام دومین اصلی
-  const domainName = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    const hostname = window.location.hostname;
-    // حذف www. اگر وجود داشت
-    return hostname.replace(/^www\./, "");
-  }, []);
+  // دامنه واقعی از سرور (نه browser hostname)
+  const domainName = settings?.domain || (typeof window !== "undefined" ? window.location.hostname.replace(/^www\./, "") : "");
 
   // آدرس ایمیل کامل
   const fullEmailAddress = domainName ? `${emailPrefix}@${domainName}` : emailPrefix;

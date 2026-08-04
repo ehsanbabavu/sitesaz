@@ -8,13 +8,12 @@ import { Mail, FileText } from "lucide-react";
 
 interface SentMessage {
   id: string;
-  userId?: string;
   to: string;
   subject: string;
-  body?: string;
-  timestamp?: string;
-  status?: string;
-  attachments?: string[];
+  body: string;
+  attachments: string[];
+  status: string;
+  timestamp?: string | null;
 }
 
 export default function SentMessages() {

@@ -20,12 +20,19 @@ export default function EmailInbox() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   // دریافت لیست ایمیل‌ها
   const { data: emails = [], isLoading, refetch } = useQuery<Email[]>({
     queryKey: ["/api/emails"],
     queryFn: async () => {
+      setFetchError(null);
       const response = await createAuthenticatedRequest("/api/emails");
-      if (!response.ok) return [];
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        setFetchError(err?.message || "خطا در دریافت ایمیل‌ها");
+        return [];
+      }
       return response.json();
     },
   });
@@ -87,6 +94,10 @@ export default function EmailInbox() {
             {isLoading ? (
               <div className="p-4 text-center text-muted-foreground">
                 در حال بارگذاری...
+              </div>
+            ) : fetchError ? (
+              <div className="p-4 text-center text-destructive text-sm">
+                {fetchError}
               </div>
             ) : filteredEmails.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">

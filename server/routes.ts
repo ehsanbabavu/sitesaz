@@ -5845,37 +5845,44 @@ ${productList || "در حال حاضر محصولی ثبت نشده است."}
     }
   });
 
-  app.post("/api/emails/receive", async (req, res) => {
-    try {
-      const { userId, sender, subject, message } = req.body;
-      
-      if (!userId || !sender || !message) {
-        return res.status(400).json({ message: "اطلاعات ناقص است" });
-      }
-
-      await db.insert(receivedMessages).values({
-        userId,
-        whatsiPlusId: `email_${Date.now()}_${Math.random()}`,
-        sender,
-        message: `موضوع: ${subject || 'بدون موضوع'}\n\n${message}`,
-        status: "خوانده نشده",
-        timestamp: new Date(),
-      });
-
-      console.log(`📧 ایمیل جدید دریافت شد از: ${sender}`);
-      res.json({ message: "ایمیل با موفقیت دریافت شد" });
-    } catch (error) {
-      console.error("خطا:", error);
-      res.status(500).json({ message: "خطا در ذخیره ایمیل" });
-    }
-  });
+  // /api/emails/receive حذف شد - دریافت ایمیل فقط از طریق SMTP Server انجام می‌شود
 
   // Sent messages history for current user
   app.get("/api/sent-messages", authenticateToken, async (req: AuthRequest, res) => {
     try {
       if (!req.user?.id) return res.status(401).json({ message: "کاربر تشخیص داده نشد" });
       const rows = await db.select().from(sentMessages).where(eq(sentMessages.userId, req.user.id)).orderBy(desc(sentMessages.timestamp));
-      res.json(rows);
+
+      // Parse stored message format: "Subject: <subject>\n\n<body>\n\nAttachments: <names>"
+      const parsed = rows.map((row) => {
+        let subject = "(بدون موضوع)";
+        let body = row.message;
+        let attachments: string[] = [];
+
+        const subjectMatch = row.message.match(/^Subject: (.+)\n\n/);
+        if (subjectMatch) {
+          subject = subjectMatch[1];
+          body = row.message.slice(subjectMatch[0].length);
+        }
+
+        const attachmentsMatch = body.match(/\n\nAttachments: (.+)$/);
+        if (attachmentsMatch) {
+          attachments = attachmentsMatch[1].split(", ").filter(Boolean);
+          body = body.slice(0, body.length - attachmentsMatch[0].length);
+        }
+
+        return {
+          id: row.id,
+          to: row.recipient,
+          subject,
+          body,
+          attachments,
+          status: row.status,
+          timestamp: row.timestamp,
+        };
+      });
+
+      res.json(parsed);
     } catch (error) {
       console.error("Error fetching sent messages:", error);
       res.status(500).json({ message: "خطا در دریافت پیام‌های ارسالی" });
@@ -5897,7 +5904,7 @@ ${productList || "در حال حاضر محصولی ثبت نشده است."}
       const result = await sendMail(req.user!.id, to, subject || "(بدون موضوع)", message, attachments);
 
       if (!result.success) {
-        return res.status(500).json({ message: "خطا در ارسال ایمیل", error: result.error });
+        return res.status(500).json({ message: "خطا در ارسال ایمیل" });
       }
 
       res.json({ message: "ایمیل با موفقیت ارسال شد", info: result.info });
@@ -5967,8 +5974,9 @@ ${productList || "در حال حاضر محصولی ثبت نشده است."}
 
       // Extract email prefix from user's email if it exists
       const emailPrefix = user.email ? user.email.split('@')[0] : "";
+      const domain = process.env.REPLIT_DEV_DOMAIN || process.env.DOMAIN || "localhost";
 
-      res.json({ emailPrefix });
+      res.json({ emailPrefix, domain });
     } catch (error) {
       console.error("خطا در دریافت تنظیمات ایمیل:", error);
       res.status(500).json({ message: "خطا در دریافت تنظیمات ایمیل" });

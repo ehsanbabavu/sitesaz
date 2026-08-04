@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import { db } from "./db-storage";
 import { sentMessages } from "../shared/schema";
 import { storage } from "./email-sender-storage";
+import fs from "fs";
 
 interface AttachmentInput {
   filename: string;
@@ -69,10 +70,25 @@ export async function sendMail(userId: string, to: string, subject: string, text
       console.error("Error saving sent message to DB:", dbErr);
     }
 
+    // Clean up uploaded attachment files from disk
+    for (const a of attachments) {
+      if (a.path) {
+        fs.unlink(a.path, (err) => {
+          if (err) console.error("Error deleting attachment file:", a.path, err);
+        });
+      }
+    }
+
     return { success: true, info };
   } catch (error) {
     console.error("Error sending mail:", error);
-    return { success: false, error };
+    // Clean up files even on failure
+    for (const a of attachments) {
+      if (a.path) {
+        fs.unlink(a.path, () => {});
+      }
+    }
+    return { success: false, error: "خطا در ارسال ایمیل" };
   }
 }
 

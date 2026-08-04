@@ -1,5 +1,6 @@
 import { db } from "./db-storage";
 import { receivedMessages } from "../shared/schema";
+import { nanoid } from "nanoid";
 
 interface SMTPMessage {
   userId: string;
@@ -10,17 +11,13 @@ interface SMTPMessage {
 }
 
 export class SMTPReceiver {
-  private receivedEmails: SMTPMessage[] = [];
-
   async saveEmail(message: SMTPMessage) {
     try {
-      this.receivedEmails.push(message);
-      
       await db.insert(receivedMessages).values({
         userId: message.userId,
-        whatsiPlusId: `smtp_${Date.now()}_${Math.random()}`,
+        whatsiPlusId: `smtp_${nanoid()}`,
         sender: message.from,
-        message: `📧 **${message.subject}**\n\n${message.text}`,
+        message: `موضوع: ${message.subject}\n\n${message.text}`,
         status: "خوانده نشده",
         timestamp: new Date(),
       });
@@ -31,14 +28,6 @@ export class SMTPReceiver {
       console.error("خطا در ذخیره ایمیل:", error);
       return false;
     }
-  }
-
-  getReceivedEmails() {
-    return this.receivedEmails;
-  }
-
-  clearReceivedEmails() {
-    this.receivedEmails = [];
   }
 }
 
