@@ -106,16 +106,13 @@ export default function SendEmailPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Button type="submit" disabled={loading} className="flex items-center gap-2">
-                    <Send className="w-4 h-4" />
-                    {loading ? 'در حال ارسال...' : 'ارسال ایمیل'}
-                  </Button>
-                  <Button variant="ghost" onClick={() => { setTo(''); setSubject(''); setMessage(''); setAttachments([]); }}>پاک کردن</Button>
-                </div>
-
-              
+              <div className="flex items-center gap-3">
+                <Button type="submit" disabled={loading} className="flex items-center gap-2">
+                  <Send className="w-4 h-4" />
+                  {loading ? 'در حال ارسال...' : 'ارسال ایمیل'}
+                </Button>
+                <Button variant="ghost" onClick={() => { setTo(''); setSubject(''); setMessage(''); setAttachments([]); }}>پاک کردن</Button>
+              </div>
 
               {result && (
                 <div className={`mt-4 p-3 rounded-md ${result.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
