@@ -354,7 +354,7 @@ function FloatingCounter() {
         }
         return prev + 2;
       });
-    }, 50);
+    }, 500);
 
     return () => clearInterval(interval);
   }, []);
@@ -384,68 +384,83 @@ function AnimatedTablet() {
   const [clickPos, setClickPos] = useState<{ x: number; y: number } | null>(null);
   const [scrollPos, setScrollPos] = useState(0);
   const tabletRef = useRef<HTMLDivElement>(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
+    cancelledRef.current = false;
+
+    const delay = (ms: number) =>
+      new Promise<void>(resolve => setTimeout(resolve, ms));
+
     const sequence = async () => {
-      while (true) {
+      while (!cancelledRef.current) {
         // Click on menu item
         for (let i = 0; i < 15; i++) {
-          await new Promise(resolve => setTimeout(resolve, 30));
+          if (cancelledRef.current) return;
+          await delay(30);
           setMousePos(prev => ({
             x: prev.x + (280 - prev.x) * 0.1,
             y: prev.y + (22 - prev.y) * 0.1,
           }));
         }
+        if (cancelledRef.current) return;
         setClickPos({ x: 280, y: 22 });
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await delay(400);
         setClickPos(null);
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await delay(600);
 
         // Move to first product card
         for (let i = 0; i < 15; i++) {
-          await new Promise(resolve => setTimeout(resolve, 30));
+          if (cancelledRef.current) return;
+          await delay(30);
           setMousePos(prev => ({
             x: prev.x + (150 - prev.x) * 0.1,
             y: prev.y + (120 - prev.y) * 0.1,
           }));
         }
+        if (cancelledRef.current) return;
         setClickPos({ x: 150, y: 120 });
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await delay(400);
         setClickPos(null);
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await delay(600);
 
         // Move to second product card
         for (let i = 0; i < 15; i++) {
-          await new Promise(resolve => setTimeout(resolve, 30));
+          if (cancelledRef.current) return;
+          await delay(30);
           setMousePos(prev => ({
             x: prev.x + (150 - prev.x) * 0.1,
             y: prev.y + (200 - prev.y) * 0.1,
           }));
         }
+        if (cancelledRef.current) return;
         setClickPos({ x: 150, y: 200 });
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await delay(400);
         setClickPos(null);
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await delay(600);
 
         // Scroll down animation
         for (let s = 0; s <= 100; s += 10) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          if (cancelledRef.current) return;
+          await delay(100);
           setScrollPos(s);
         }
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await delay(400);
 
         // Click add to cart button
         for (let i = 0; i < 15; i++) {
-          await new Promise(resolve => setTimeout(resolve, 30));
+          if (cancelledRef.current) return;
+          await delay(30);
           setMousePos(prev => ({
             x: prev.x + (150 - prev.x) * 0.1,
             y: prev.y + (280 - prev.y) * 0.1,
           }));
         }
+        if (cancelledRef.current) return;
         setClickPos({ x: 150, y: 280 });
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await delay(400);
         setClickPos(null);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await delay(1000);
 
         // Reset
         setScrollPos(0);
@@ -453,6 +468,10 @@ function AnimatedTablet() {
     };
 
     sequence();
+
+    return () => {
+      cancelledRef.current = true;
+    };
   }, []);
 
   return (
@@ -697,17 +716,13 @@ export default function Home() {
     loadChatSession();
   }, [loadChatSession]);
 
-  // Poll messages ALWAYS (even when chat is closed) to detect admin replies
+  // Poll messages to detect admin replies
+  // When chat is open: every 3s — when closed: every 15s (only if plugin enabled)
   useEffect(() => {
+    if (!isGuestChatsPluginEnabled) return;
+
     const pollMessages = async () => {
       try {
-        // First ensure session exists
-        await fetch('/api/guest-chat/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionToken })
-        });
-        
         const messagesRes = await fetch(`/api/guest-chat/${sessionToken}/messages`);
         if (!messagesRes.ok) return;
         
@@ -724,7 +739,6 @@ export default function Home() {
           const hasNewBotMessage = newMessages.some(m => m.sender === 'bot');
           if (hasNewBotMessage && !isContactOpen) {
             setHasUnreadBotMessage(true);
-            // Trigger shake animation for new bot message
             setIsShaking(true);
             if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
             shakeTimeoutRef.current = setTimeout(() => {
@@ -740,13 +754,10 @@ export default function Home() {
       }
     };
     
-    // Poll immediately on mount
-    pollMessages();
-    
-    // Then poll every 3 seconds
-    const interval = setInterval(pollMessages, 3000);
+    const intervalMs = isContactOpen ? 3000 : 15000;
+    const interval = setInterval(pollMessages, intervalMs);
     return () => clearInterval(interval);
-  }, [sessionToken, isContactOpen]);
+  }, [sessionToken, isContactOpen, isGuestChatsPluginEnabled]);
 
   useEffect(() => {
     const handleScroll = () => {
