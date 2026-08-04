@@ -128,6 +128,17 @@ export function AppSidebar() {
   });
   const isInternalChatsPluginEnabled = internalChatsPluginData?.isEnabled ?? true;
 
+  const { data: whatsappPluginData } = useQuery<{ isEnabled: boolean }>({
+    queryKey: ['/api/plugins/whatsapp/status'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/plugins/whatsapp/status');
+      return response.json();
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
+  const isWhatsappPluginEnabled = whatsappPluginData?.isEnabled ?? true;
+
   const { data: unreadGuestChatsData } = useQuery<{ unreadCount: number }>({
     queryKey: ['/api/admin/guest-chats/unread-count'],
     queryFn: async () => {
@@ -315,7 +326,7 @@ export function AppSidebar() {
           {user?.role === "admin" && (
             <>
               {renderCollapsibleMenu("پیام‌ها", communicationItems, isMessagesOpen, setIsMessagesOpen)}
-              {renderCollapsibleMenu("واتس‌اپ", whatsappItems, isWhatsappOpen, setIsWhatsappOpen)}
+              {isWhatsappPluginEnabled && renderCollapsibleMenu("واتس‌اپ", whatsappItems, isWhatsappOpen, setIsWhatsappOpen)}
               {renderCollapsibleMenu("تجاری", businessItems, isBusinessOpen, setIsBusinessOpen)}
               {renderCollapsibleMenu("انبارداری", inventoryItems, isInventoryOpen, setIsInventoryOpen)}
               {isEmailPluginEnabled && renderCollapsibleMenu("ایمیل", emailItems, isEmailOpen, setIsEmailOpen)}
