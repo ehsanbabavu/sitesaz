@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Clock, CheckCircle, AlertCircle, MessageSquare, Package, TrendingUp, Grid3X3, Plus } from "lucide-react";
+import { Crown, Clock, CheckCircle, AlertCircle, MessageSquare, Package, TrendingUp, Grid3X3, Plus, ShoppingBag, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { createAuthenticatedRequest } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
@@ -102,6 +102,38 @@ export default function UserDashboard() {
     },
   });
 
+
+  // Get admin products catalog for level 1 users
+  const { data: adminProducts = [], isLoading: adminProductsLoading } = useQuery<Product[]>({
+    queryKey: ["/api/admin-products"],
+    enabled: !!user && user.role === "user_level_1",
+    queryFn: async () => {
+      const response = await createAuthenticatedRequest("/api/admin-products");
+      if (!response.ok) return [];
+      return response.json();
+    },
+  });
+
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
+
+  const importProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await createAuthenticatedRequest(`/api/admin-products/${productId}/import`, { method: "POST" });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "خطا در افزودن محصول");
+      }
+      return response.json();
+    },
+    onSuccess: (_data, productId) => {
+      setImportedIds(prev => new Set(prev).add(productId));
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({ title: "موفقیت", description: "محصول به کاتالوگ شما اضافه شد" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "خطا", description: error.message, variant: "destructive" });
+    },
+  });
 
   // Get pending orders (پرداخت شده و در انتظار تایید) list for dashboard (for level 1 users)
   const { data: unpaidPendingOrders = [] } = useQuery<OrderWithDetails[]>({
@@ -358,130 +390,218 @@ export default function UserDashboard() {
       <div className="space-y-4" data-testid="dashboard-content">
 
         {/* Subscription Information - Hidden for user_level_2 */}
-        {user?.role !== "user_level_2" && (
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-blue-200 dark:border-blue-800">
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="flex items-center justify-center gap-2 text-sm text-blue-900 dark:text-blue-300">
-                <Crown className="h-4 w-4" />
-                اطلاعات اشتراک
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              {subscriptionLoading ? (
-                <div className="text-center py-2">
-                  <div className="text-xs text-muted-foreground">در حال بارگذاری...</div>
-                </div>
-              ) : userSubscription ? (
-                <div className="space-y-2">
-                  {/* Subscription Status */}
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    {userSubscription.status === 'active' && userSubscription.remainingDays > 0 ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    )}
-                    <Badge 
-                      variant={userSubscription.status === 'active' && userSubscription.remainingDays > 0 ? "default" : "destructive"}
-                      data-testid="badge-subscription-status"
-                      className="text-xs"
-                    >
-                      {userSubscription.status === 'active' && userSubscription.remainingDays > 0 ? 'فعال' : 'غیرفعال'}
-                    </Badge>
-                  </div>
+        {user?.role !== "user_level_2" && (() => {
+          const isActive = userSubscription && userSubscription.status === 'active' && userSubscription.remainingDays > 0;
+          const isExpiringSoon = userSubscription && userSubscription.remainingDays <= 7 && userSubscription.remainingDays > 0;
+          const days = userSubscription?.remainingDays || 0;
 
-                  {/* Subscription Details */}
-                  <div className="flex items-center justify-between p-2 bg-white dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <Crown className="h-3 w-3 text-green-600 dark:text-green-400" />
-                        <span className="text-xs text-green-700 dark:text-green-300" data-testid="text-subscription-name">
-                          {userSubscription.subscriptionName || 'نامشخص'}
-                        </span>
-                        {userSubscription.isTrialPeriod && (
-                          <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-1">آزمایشی</Badge>
-                        )}
+          return (
+            <div className={`relative overflow-hidden rounded-2xl border ${
+              subscriptionLoading
+                ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                : isActive
+                  ? "bg-gradient-to-br from-indigo-600 to-blue-500 border-indigo-400 dark:border-indigo-700"
+                  : "bg-gradient-to-br from-red-500 to-rose-600 border-red-400 dark:border-red-700"
+            }`}>
+
+              {/* decorative circle */}
+              {!subscriptionLoading && (
+                <div className="absolute -top-6 -left-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
+              )}
+
+              <div className="relative px-4 py-4">
+                {subscriptionLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                    <div className="h-3 w-3 rounded-full bg-gray-300 animate-pulse" />
+                    <span>در حال بارگذاری...</span>
+                  </div>
+                ) : userSubscription ? (
+                  <div className="flex items-center justify-between gap-3">
+
+                    {/* Right section: icon + name + badges */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`shrink-0 p-2 rounded-xl ${isActive ? "bg-white/20" : "bg-white/20"}`}>
+                        <Crown className="h-5 w-5 text-white" />
                       </div>
-                      
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300" data-testid="text-remaining-days">
-                          {userSubscription.remainingDays || 0} روز باقیمانده
-                        </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-bold text-white truncate" data-testid="text-subscription-name">
+                            {userSubscription.subscriptionName || 'نامشخص'}
+                          </span>
+                          {userSubscription.isTrialPeriod && (
+                            <span className="text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full">آزمایشی</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {isActive ? (
+                            <CheckCircle className="h-3 w-3 text-green-300 shrink-0" data-testid="badge-subscription-status" />
+                          ) : (
+                            <AlertCircle className="h-3 w-3 text-red-200 shrink-0" data-testid="badge-subscription-status" />
+                          )}
+                          <span className="text-[11px] text-white/80">
+                            {isActive ? 'اشتراک فعال' : 'اشتراک غیرفعال'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    
-                    {userSubscription.remainingDays <= 7 && userSubscription.remainingDays > 0 && (
-                      <Badge variant="destructive" className="text-[10px]">
-                        نزدیک به انقضا
-                      </Badge>
-                    )}
+
+                    {/* Left section: days counter */}
+                    <div className="shrink-0 text-center bg-white/20 rounded-xl px-3 py-2">
+                      <div className="text-xl font-black text-white leading-none" data-testid="text-remaining-days">
+                        {days}
+                      </div>
+                      <div className="text-[10px] text-white/80 mt-0.5 flex items-center justify-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" />
+                        <span>روز باقیمانده</span>
+                      </div>
+                      {isExpiringSoon && (
+                        <div className="mt-1 text-[9px] bg-white/30 text-white rounded-full px-1.5 py-0.5">
+                          نزدیک به انقضا
+                        </div>
+                      )}
+                    </div>
+
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-2">
-                  <AlertCircle className="h-5 w-5 text-gray-400 mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">اطلاعات اشتراک یافت نشد</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                ) : (
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="p-2 rounded-xl bg-white/10">
+                      <Crown className="h-5 w-5 text-white/60" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/80">اشتراکی یافت نشد</p>
+                      <p className="text-xs text-white/50 mt-0.5">برای استفاده از امکانات، اشتراک تهیه کنید</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Quick Stats - Hidden for user_level_2 */}
         {user?.role !== "user_level_2" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Card className="text-center hover:shadow-md transition-shadow border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-center mb-1">
-                  <MessageSquare className="w-4 h-4 text-blue-600 ml-1" />
-                  <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">تیکت‌های باز</span>
-                </div>
-                <div className="text-xl font-bold text-blue-600 mb-1" data-testid="stat-open-tickets">
-                  {ticketsLoading ? "..." : openTickets}
+          <div className="grid grid-cols-2 gap-3">
+
+            {/* Tickets Card */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-900 p-4 flex flex-col justify-between min-h-[100px] hover:shadow-lg transition-shadow">
+              <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <MessageSquare className="h-5 w-5 text-white" />
                 </div>
                 {openTickets > 0 && (
-                  <Badge variant="secondary" className="text-xs bg-blue-200 text-blue-800">
-                    {openTickets === 1 ? "نیاز به بررسی" : `${openTickets} فعال`}
-                  </Badge>
+                  <span className="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full">
+                    نیاز به بررسی
+                  </span>
                 )}
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center hover:shadow-md transition-shadow border-green-200 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-center mb-1">
-                  <Package className="w-4 h-4 text-green-600 ml-1" />
-                  <span className="text-xs text-green-700 dark:text-green-300 font-medium">محصولات فعال</span>
+              </div>
+              <div className="mt-3">
+                <div className="text-3xl font-black text-white leading-none" data-testid="stat-open-tickets">
+                  {ticketsLoading ? (
+                    <span className="text-lg animate-pulse">...</span>
+                  ) : openTickets}
                 </div>
-                <div className="text-xl font-bold text-green-600 mb-1" data-testid="stat-active-products">
-                  {productsLoading ? "..." : activeProducts}
-                </div>
-                {activeProducts > 0 && (
-                  <Badge variant="secondary" className="text-xs bg-green-200 text-green-800">
-                    از {products.length} محصول
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
+                <div className="text-xs text-white/75 mt-1">تیکت‌های باز</div>
+              </div>
+            </div>
 
-            {/* Pending Orders Card (پرداخت شده و در انتظار تایید) - Only for user_level_1 */}
+            {/* Pending Orders Card - Only for user_level_1 */}
             {user?.role === "user_level_1" && (
-              <Card className="text-center hover:shadow-md transition-shadow border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-center mb-1">
-                    <AlertCircle className="w-4 h-4 text-orange-600 ml-1" />
-                    <span className="text-xs text-orange-700 dark:text-orange-300 font-medium">سفارشات در انتظار تایید</span>
-                  </div>
-                  <div className="text-xl font-bold text-orange-600 mb-1" data-testid="stat-pending-approval-orders">
-                    {unpaidPendingOrders.length}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-800 p-4 flex flex-col justify-between min-h-[100px] hover:shadow-lg transition-shadow">
+                <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-white" />
                   </div>
                   {unpaidPendingOrders.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-orange-200 text-orange-800">
+                    <span className="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full">
                       نیاز به بررسی
-                    </Badge>
+                    </span>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+                <div className="mt-3">
+                  <div className="text-3xl font-black text-white leading-none" data-testid="stat-pending-approval-orders">
+                    {unpaidPendingOrders.length}
+                  </div>
+                  <div className="text-xs text-white/75 mt-1">سفارشات در انتظار تایید</div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
+
+        {/* Admin Products Catalog - Only for user_level_1 */}
+        {user?.role === "user_level_1" && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="h-5 w-5 text-purple-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">کاتالوگ محصولات</h2>
+              {adminProducts.length > 0 && (
+                <span className="text-xs text-muted-foreground bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                  {adminProducts.length} محصول
+                </span>
+              )}
+            </div>
+            {adminProductsLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : adminProducts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                <Package className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                محصولی در کاتالوگ موجود نیست
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {adminProducts.map((product) => {
+                  const isImported = importedIds.has(product.id);
+                  const isLoading = importProductMutation.isPending && importProductMutation.variables === product.id;
+                  return (
+                    <Card key={product.id} className={`overflow-hidden hover:shadow-md transition-all ${isImported ? "ring-2 ring-green-400" : ""}`}>
+                      <div className="relative aspect-square bg-gray-100 dark:bg-gray-800">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-10 w-10 text-gray-300" />
+                          </div>
+                        )}
+                        {isImported && (
+                          <div className="absolute top-2 left-2 bg-green-500 text-white rounded-full p-0.5">
+                            <Check className="h-3 w-3" />
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-3 space-y-2">
+                        <p className="text-sm font-medium line-clamp-2 leading-snug">{product.name}</p>
+                        <p className="text-xs font-bold text-green-600 dark:text-green-400">
+                          {Number(product.priceAfterDiscount || product.priceBeforeDiscount).toLocaleString("fa-IR")} تومان
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full text-xs h-7"
+                          variant={isImported ? "secondary" : "default"}
+                          disabled={isImported || isLoading}
+                          onClick={() => importProductMutation.mutate(product.id)}
+                        >
+                          {isImported ? (
+                            <><Check className="h-3 w-3 ml-1" />افزوده شد</>
+                          ) : isLoading ? "در حال افزودن..." : (
+                            <><Plus className="h-3 w-3 ml-1" />افزودن به کاتالوگ</>
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
