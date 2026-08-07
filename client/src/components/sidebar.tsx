@@ -319,7 +319,7 @@ export function AppSidebar() {
         <SidebarMenu className="space-y-1">
           {user?.role !== "admin" && userMenuItems.map(renderMenuItem)}
 
-          {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product"].includes(item.path)).map(renderMenuItem)}
+          {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product", "/send-ticket"].includes(item.path)).map(renderMenuItem)}
 
           {user?.role === "user_level_2" && level2MenuItems.map(renderMenuItem)}
 
