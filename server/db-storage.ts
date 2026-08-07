@@ -674,6 +674,14 @@ export class DbStorage implements IStorage {
     return [];
   }
 
+  async getAdminProducts(): Promise<Product[]> {
+    const adminUser = await db.select({ id: users.id }).from(users).where(eq(users.role, 'admin')).limit(1);
+    if (!adminUser.length) return [];
+    return await db.select().from(products).where(
+      and(eq(products.userId, adminUser[0].id), eq(products.isActive, true))
+    );
+  }
+
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
     const result = await db.insert(products).values(insertProduct).returning();
     return result[0];

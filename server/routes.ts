@@ -13,7 +13,7 @@ import { generateAndSaveInvoice } from "./invoice-service";
 import { whatsAppSender } from "./whatsapp-sender";
 import { db, eq } from "./db-storage";
 import { and, desc } from "drizzle-orm";
-import { orders } from "@shared/schema";
+import { orders, products } from "@shared/schema";
 import { tronService } from "./tron-service";
 import { rippleService } from "./ripple-service";
 import { cardanoService } from "./cardano-service";
@@ -1642,6 +1642,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(products);
     } catch (error) {
       res.status(500).json({ message: "خطا در دریافت محصولات" });
+    }
+  });
+
+  // Admin products catalog for level 1 users to browse and import
+  app.get("/api/admin-products", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.user?.role !== "user_level_1") {
+        return res.status(403).json({ message: "دسترسی محدود" });
+      }
+      const adminProducts = await storage.getAdminProducts();
+      res.json(adminProducts);
+    } catch (error) {
+      console.error("خطا در دریافت محصولات ادمین:", error);
+      res.status(500).json({ message: "خطا در دریافت محصولات" });
+    }
+  });
+
+  // Import an admin product into level 1 user's catalog
+  app.post("/api/admin-products/:id/import", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.user?.role !== "user_level_1") {
+        return res.status(403).json({ message: "دسترسی محدود" });
+      }
+      const { id } = req.params;
+      // Get all admin products and find the requested one
+      const adminProducts = await storage.getAdminProducts();
+      const product = adminProducts.find(p => p.id === id);
+      if (!product) return res.status(404).json({ message: "محصول یافت نشد" });
+      // Check if already imported
+      const userProducts = await storage.getAllProducts(req.user!.id, req.user!.role);
+      const alreadyExists = userProducts.some(p => p.name === product.name);
+      if (alreadyExists) {
+        return res.status(409).json({ message: "این محصول قبلاً به کاتالوگ شما اضافه شده است" });
+      }
+      // Copy to level 1 user's catalog
+      const { id: _id, userId: _uid, createdAt: _ca, ...rest } = product;
+      const imported = await storage.createProduct({ ...rest, userId: req.user!.id });
+      res.json(imported);
+    } catch (error) {
+      console.error("خطا در import محصول:", error);
+      res.status(500).json({ message: "خطا در افزودن محصول" });
     }
   });
 

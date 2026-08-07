@@ -38,6 +38,7 @@ export interface IStorage {
   getProduct(id: string, currentUserId: string, userRole: string): Promise<Product | undefined>;
   getProductsByUser(userId: string): Promise<Product[]>;
   getAllProducts(currentUserId?: string, userRole?: string): Promise<Product[]>;
+  getAdminProducts(): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<Product>, currentUserId: string, userRole: string): Promise<Product | undefined>;
   deleteProduct(id: string, currentUserId: string, userRole: string): Promise<boolean>;
