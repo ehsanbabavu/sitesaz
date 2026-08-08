@@ -536,7 +536,6 @@ export default function UserDashboard() {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <ShoppingBag className="h-5 w-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">کاتالوگ محصولات</h2>
               {adminProducts.length > 0 && (
                 <span className="text-xs text-muted-foreground bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
                   {adminProducts.length} محصول
@@ -552,7 +551,7 @@ export default function UserDashboard() {
             ) : adminProducts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <Package className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                محصولی در کاتالوگ موجود نیست
+                محصولی موجود نیست
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
