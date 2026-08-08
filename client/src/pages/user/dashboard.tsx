@@ -593,7 +593,7 @@ export default function UserDashboard() {
                           {isImported ? (
                             <><Check className="h-3 w-3 ml-1" />افزوده شد</>
                           ) : isLoading ? "در حال افزودن..." : (
-                            <><Plus className="h-3 w-3 ml-1" />افزودن به کاتالوگ</>
+                            <><Plus className="h-3 w-3 ml-1" />افزودن به سبد خرید</>
                           )}
                         </Button>
                       </CardContent>
