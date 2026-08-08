@@ -128,7 +128,7 @@ export default function UserDashboard() {
     onSuccess: (_data, productId) => {
       setImportedIds(prev => new Set(prev).add(productId));
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      toast({ title: "موفقیت", description: "محصول به کاتالوگ شما اضافه شد" });
+      toast({ title: "موفقیت", description: "محصول شما به سبد خرید اضافه شد" });
     },
     onError: (error: Error) => {
       toast({ title: "خطا", description: error.message, variant: "destructive" });
