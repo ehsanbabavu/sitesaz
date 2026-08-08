@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Clock, CheckCircle, AlertCircle, MessageSquare, Package, TrendingUp, Grid3X3, Plus, ShoppingBag, Check } from "lucide-react";
+import { Crown, Clock, CheckCircle, AlertCircle, MessageSquare, Package, TrendingUp, Grid3X3, Plus, ShoppingBag, ShoppingCart, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { createAuthenticatedRequest } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
@@ -593,7 +593,7 @@ export default function UserDashboard() {
                           {isImported ? (
                             <><Check className="h-3 w-3 ml-1" />افزوده شد</>
                           ) : isLoading ? "در حال افزودن..." : (
-                            <><Plus className="h-3 w-3 ml-1" />افزودن به سبد خرید</>
+                            <><Plus className="h-3 w-3 ml-1" />افزودن به <ShoppingCart className="h-3 w-3 mr-1" aria-hidden="true" /></>
                           )}
                         </Button>
                       </CardContent>
