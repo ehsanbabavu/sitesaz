@@ -409,7 +409,7 @@ export default function UserDashboard() {
                 <div className="absolute -top-6 -left-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
               )}
 
-              <div className="relative px-3 py-3 sm:px-4 sm:py-4">
+              <div className="relative px-2.5 py-2.5 sm:px-4 sm:py-4">
                 {subscriptionLoading ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
                     <div className="h-3 w-3 rounded-full bg-gray-300 animate-pulse" />
@@ -420,8 +420,8 @@ export default function UserDashboard() {
 
                     {/* Right section: icon + name + badges */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`shrink-0 p-2 rounded-xl ${isActive ? "bg-white/20" : "bg-white/20"}`}>
-                        <Crown className="h-5 w-5 text-white" />
+                       <div className={`shrink-0 p-1.5 sm:p-2 rounded-xl ${isActive ? "bg-white/20" : "bg-white/20"}`}>
+                         <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -446,8 +446,8 @@ export default function UserDashboard() {
                     </div>
 
                     {/* Left section: days counter */}
-                    <div className="shrink-0 text-center bg-white/20 rounded-xl px-3 py-2">
-                      <div className="text-xl font-black text-white leading-none" data-testid="text-remaining-days">
+                     <div className="shrink-0 text-center bg-white/20 rounded-xl px-2 py-1.5 sm:px-3 sm:py-2">
+                       <div className="text-lg sm:text-xl font-black text-white leading-none" data-testid="text-remaining-days">
                         {days}
                       </div>
                       <div className="text-[10px] text-white/80 mt-0.5 flex items-center justify-center gap-0.5">
@@ -480,14 +480,14 @@ export default function UserDashboard() {
 
         {/* Quick Stats - Hidden for user_level_2 */}
         {user?.role !== "user_level_2" && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
 
             {/* Tickets Card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-900 p-3 sm:p-4 flex flex-col justify-between min-h-[86px] sm:min-h-[100px] hover:shadow-lg transition-shadow">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-600 dark:to-blue-900 p-2 sm:p-4 flex flex-col justify-between min-h-[72px] sm:min-h-[100px] hover:shadow-lg transition-shadow">
               <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
               <div className="flex items-center justify-between">
-                 <div className="p-1.5 sm:p-2 bg-white/20 rounded-xl">
-                   <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                 <div className="p-1 sm:p-2 bg-white/20 rounded-xl">
+                   <MessageSquare className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-white" />
                 </div>
                 {openTickets > 0 && (
                   <span className="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full">
@@ -495,8 +495,8 @@ export default function UserDashboard() {
                   </span>
                 )}
               </div>
-               <div className="mt-2 sm:mt-3">
-                 <div className="text-2xl sm:text-3xl font-black text-white leading-none" data-testid="stat-open-tickets">
+                <div className="mt-1.5 sm:mt-3">
+                  <div className="text-xl sm:text-3xl font-black text-white leading-none" data-testid="stat-open-tickets">
                   {ticketsLoading ? (
                     <span className="text-lg animate-pulse">...</span>
                   ) : openTickets}
@@ -507,11 +507,11 @@ export default function UserDashboard() {
 
             {/* Pending Orders Card - Only for user_level_1 */}
             {user?.role === "user_level_1" && (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-800 p-3 sm:p-4 flex flex-col justify-between min-h-[86px] sm:min-h-[100px] hover:shadow-lg transition-shadow">
+               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-800 p-2 sm:p-4 flex flex-col justify-between min-h-[72px] sm:min-h-[100px] hover:shadow-lg transition-shadow">
                 <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
                 <div className="flex items-center justify-between">
-                 <div className="p-1.5 sm:p-2 bg-white/20 rounded-xl">
-                   <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  <div className="p-1 sm:p-2 bg-white/20 rounded-xl">
+                    <AlertCircle className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-white" />
                   </div>
                   {unpaidPendingOrders.length > 0 && (
                     <span className="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full">
@@ -519,8 +519,8 @@ export default function UserDashboard() {
                     </span>
                   )}
                 </div>
-               <div className="mt-2 sm:mt-3">
-                 <div className="text-2xl sm:text-3xl font-black text-white leading-none" data-testid="stat-pending-approval-orders">
+               <div className="mt-1.5 sm:mt-3">
+                 <div className="text-xl sm:text-3xl font-black text-white leading-none" data-testid="stat-pending-approval-orders">
                     {unpaidPendingOrders.length}
                   </div>
                   <div className="text-xs text-white/75 mt-1">سفارشات در انتظار تایید</div>
@@ -543,9 +543,9 @@ export default function UserDashboard() {
               )}
             </div>
             {adminProductsLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+                  <div key={i} className="h-36 sm:h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : adminProducts.length === 0 ? (
@@ -554,13 +554,13 @@ export default function UserDashboard() {
                 محصولی موجود نیست
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-3">
                 {adminProducts.map((product) => {
                   const isImported = importedIds.has(product.id);
                   const isLoading = importProductMutation.isPending && importProductMutation.variables === product.id;
                   return (
                     <Card key={product.id} className={`overflow-hidden hover:shadow-md transition-all ${isImported ? "ring-2 ring-green-400" : ""}`}>
-                      <div className="relative aspect-[4/3] sm:aspect-square bg-gray-100 dark:bg-gray-800">
+                      <div className="relative aspect-[3/2] sm:aspect-square bg-gray-100 dark:bg-gray-800">
                         {product.image ? (
                           <img
                             src={product.image}
@@ -578,14 +578,14 @@ export default function UserDashboard() {
                           </div>
                         )}
                       </div>
-                      <CardContent className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
-                        <p className="text-xs sm:text-sm font-medium line-clamp-2 leading-snug">{product.name}</p>
-                        <p className="text-xs font-bold text-green-600 dark:text-green-400">
+                      <CardContent className="p-1.5 sm:p-3 space-y-1 sm:space-y-2">
+                        <p className="text-[11px] sm:text-sm font-medium line-clamp-2 leading-snug">{product.name}</p>
+                        <p className="text-[10px] sm:text-xs font-bold text-green-600 dark:text-green-400">
                           {Number(product.priceAfterDiscount || product.priceBeforeDiscount).toLocaleString("fa-IR")} تومان
                         </p>
                         <Button
                           size="sm"
-                          className="w-full text-[11px] sm:text-xs h-6 sm:h-7"
+                          className="w-full text-[10px] sm:text-xs h-5 sm:h-7"
                           variant={isImported ? "secondary" : "default"}
                           disabled={isImported || isLoading}
                           onClick={() => importProductMutation.mutate(product.id)}
