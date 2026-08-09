@@ -67,7 +67,7 @@ __export(schema_exports, {
   projectOrderRequests: () => projectOrderRequests,
   receivedMessages: () => receivedMessages,
   resetPasswordSchema: () => resetPasswordSchema,
-  sentMessages: () => sentMessages2,
+  sentMessages: () => sentMessages,
   shippingSettings: () => shippingSettings,
   subscriptions: () => subscriptions,
   ticketReplySchema: () => ticketReplySchema,
@@ -91,7 +91,7 @@ import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, timestamp, integer, boolean, decimal, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-var users, tickets, subscriptions, products, whatsappSettings, sentMessages2, receivedMessages, aiTokenSettings, blockchainSettings, internalChats, userSubscriptions, categories, carts, cartItems, addresses, orders, orderItems, transactions, faqs, shippingSettings, passwordResetOtps, vatSettings, maintenanceMode, cryptoPrices, guestChatSessions, guestChatMessages, cryptoTransactions, insertUserSchema, insertSubUserSchema, insertTicketSchema, insertSubscriptionSchema, insertProductSchema, insertWhatsappSettingsSchema, insertSentMessageSchema, insertReceivedMessageSchema, insertAiTokenSettingsSchema, insertBlockchainSettingsSchema, insertInternalChatSchema, insertUserSubscriptionSchema, insertCategorySchema, insertCartSchema, insertCartItemSchema, insertAddressSchema, updateAddressSchema, insertOrderSchema, insertOrderItemSchema, insertTransactionSchema, insertFaqSchema, updateFaqSchema, insertShippingSettingsSchema, updateShippingSettingsSchema, insertPasswordResetOtpSchema, insertVatSettingsSchema, updateVatSettingsSchema, updateCategoryOrderSchema, ticketReplySchema, resetPasswordSchema, insertGuestChatSessionSchema, insertGuestChatMessageSchema, insertCryptoTransactionSchema, contentSections, insertContentSectionSchema, updateContentSectionSchema, loginLogs, insertLoginLogSchema, insertCryptoPriceSchema, projectOrderRequests, insertProjectOrderRequestSchema, updateProjectOrderRequestSchema, emails, insertEmailSchema, updateEmailSchema, plugins, insertPluginSchema, updatePluginSchema;
+var users, tickets, subscriptions, products, whatsappSettings, sentMessages, receivedMessages, aiTokenSettings, blockchainSettings, internalChats, userSubscriptions, categories, carts, cartItems, addresses, orders, orderItems, transactions, faqs, shippingSettings, passwordResetOtps, vatSettings, maintenanceMode, cryptoPrices, guestChatSessions, guestChatMessages, cryptoTransactions, insertUserSchema, insertSubUserSchema, insertTicketSchema, insertSubscriptionSchema, insertProductSchema, insertWhatsappSettingsSchema, insertSentMessageSchema, insertReceivedMessageSchema, insertAiTokenSettingsSchema, insertBlockchainSettingsSchema, insertInternalChatSchema, insertUserSubscriptionSchema, insertCategorySchema, insertCartSchema, insertCartItemSchema, insertAddressSchema, updateAddressSchema, insertOrderSchema, insertOrderItemSchema, insertTransactionSchema, insertFaqSchema, updateFaqSchema, insertShippingSettingsSchema, updateShippingSettingsSchema, insertPasswordResetOtpSchema, insertVatSettingsSchema, updateVatSettingsSchema, updateCategoryOrderSchema, ticketReplySchema, resetPasswordSchema, insertGuestChatSessionSchema, insertGuestChatMessageSchema, insertCryptoTransactionSchema, contentSections, insertContentSectionSchema, updateContentSectionSchema, loginLogs, insertLoginLogSchema, insertCryptoPriceSchema, projectOrderRequests, insertProjectOrderRequestSchema, updateProjectOrderRequestSchema, emails, insertEmailSchema, updateEmailSchema, plugins, insertPluginSchema, updatePluginSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -191,7 +191,7 @@ var init_schema = __esm({
       aiName: text("ai_name").notNull().default("\u0645\u0646 \u0647\u0648\u0634 \u0645\u0635\u0646\u0648\u0639\u06CC \u0647\u0633\u062A\u0645"),
       updatedAt: timestamp("updated_at").defaultNow()
     });
-    sentMessages2 = pgTable("sent_messages", {
+    sentMessages = pgTable("sent_messages", {
       id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
       userId: varchar("user_id").notNull().references(() => users.id),
       recipient: text("recipient").notNull(),
@@ -547,7 +547,7 @@ var init_schema = __esm({
       id: true,
       updatedAt: true
     });
-    insertSentMessageSchema = createInsertSchema(sentMessages2).omit({
+    insertSentMessageSchema = createInsertSchema(sentMessages).omit({
       id: true,
       timestamp: true
     });
@@ -857,7 +857,7 @@ var init_db_storage = __esm({
       ssl: false
     });
     db = drizzle(pool, {
-      schema: { users, tickets, subscriptions, products, whatsappSettings, sentMessages: sentMessages2, receivedMessages, aiTokenSettings, blockchainSettings, userSubscriptions, categories, carts, cartItems, addresses, orders, orderItems, transactions, internalChats, faqs, shippingSettings, passwordResetOtps, vatSettings, contentSections, loginLogs, cryptoPrices, guestChatSessions, guestChatMessages, projectOrderRequests, cryptoTransactions, plugins, emails }
+      schema: { users, tickets, subscriptions, products, whatsappSettings, sentMessages, receivedMessages, aiTokenSettings, blockchainSettings, userSubscriptions, categories, carts, cartItems, addresses, orders, orderItems, transactions, internalChats, faqs, shippingSettings, passwordResetOtps, vatSettings, contentSections, loginLogs, cryptoPrices, guestChatSessions, guestChatMessages, projectOrderRequests, cryptoTransactions, plugins, emails }
     });
     DbStorage = class {
       constructor() {
@@ -872,14 +872,11 @@ var init_db_storage = __esm({
       async initializeAdminUser() {
         try {
           const existingAdmin = await db.select().from(users).where(eq(users.username, "ehsan")).limit(1);
+          const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+          const hashedPassword = await bcrypt.hash(adminPassword, 10);
           if (existingAdmin.length === 0) {
-            const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
-            if (!process.env.ADMIN_PASSWORD) {
-              console.log("\u{1F511} \u06A9\u0627\u0631\u0628\u0631 \u0627\u062F\u0645\u06CC\u0646 \u0627\u06CC\u062C\u0627\u062F \u0634\u062F - \u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC: ehsan");
-              console.log("\u{1F511} \u0631\u0645\u0632 \u0639\u0628\u0648\u0631 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636: admin123");
-              console.log("\u26A0\uFE0F  \u0628\u0631\u0627\u06CC \u062A\u063A\u06CC\u06CC\u0631 \u0631\u0645\u0632 \u0639\u0628\u0648\u0631\u060C \u0645\u062A\u063A\u06CC\u0631 ADMIN_PASSWORD \u0631\u0627 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F");
-            }
-            const hashedPassword = await bcrypt.hash(adminPassword, 10);
+            console.log("\u{1F511} \u06A9\u0627\u0631\u0628\u0631 \u0627\u062F\u0645\u06CC\u0646 \u0627\u06CC\u062C\u0627\u062F \u0634\u062F - \u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC: ehsan");
+            console.log(`\u{1F511} \u0631\u0645\u0632 \u0639\u0628\u0648\u0631: ${adminPassword}`);
             await db.insert(users).values({
               username: "ehsan",
               firstName: "\u0627\u062D\u0633\u0627\u0646",
@@ -889,6 +886,9 @@ var init_db_storage = __esm({
               password: hashedPassword,
               role: "admin"
             });
+          } else {
+            await db.update(users).set({ password: hashedPassword }).where(eq(users.username, "ehsan"));
+            console.log(`\u2705 \u0631\u0645\u0632 \u0639\u0628\u0648\u0631 \u06A9\u0627\u0631\u0628\u0631 ehsan \u0628\u0647 "${adminPassword}" \u062A\u063A\u06CC\u06CC\u0631 \u06CC\u0627\u0641\u062A.`);
           }
         } catch (error) {
           console.error("Error initializing admin user:", error);
@@ -1215,8 +1215,16 @@ var init_db_storage = __esm({
         return result[0];
       }
       async createUser(insertUser) {
-        const result = await db.insert(users).values(insertUser).returning();
-        return result[0];
+        try {
+          const result = await db.insert(users).values(insertUser).returning();
+          return result[0];
+        } catch (error) {
+          console.error("\u274C Error in createUser database operation:", error);
+          if (error.code === "23505" || error.message?.includes("unique")) {
+            throw new Error("\u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC \u06CC\u0627 \u0634\u0645\u0627\u0631\u0647 \u062A\u0644\u0641\u0646 \u062A\u06A9\u0631\u0627\u0631\u06CC \u0627\u0633\u062A");
+          }
+          throw error;
+        }
       }
       async updateUser(id, updates) {
         const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
@@ -1255,7 +1263,7 @@ var init_db_storage = __esm({
         await db.delete(internalChats).where(
           or(eq(internalChats.senderId, id), eq(internalChats.receiverId, id))
         );
-        await db.delete(sentMessages2).where(eq(sentMessages2.userId, id));
+        await db.delete(sentMessages).where(eq(sentMessages.userId, id));
         await db.delete(receivedMessages).where(eq(receivedMessages.userId, id));
         await db.delete(userSubscriptions).where(eq(userSubscriptions.userId, id));
         await db.delete(tickets).where(eq(tickets.userId, id));
@@ -1289,6 +1297,10 @@ var init_db_storage = __esm({
       async deleteTicket(id) {
         const result = await db.delete(tickets).where(eq(tickets.id, id));
         return result.rowCount > 0;
+      }
+      async markTicketAsRead(id) {
+        const result = await db.update(tickets).set({ status: "read" }).where(eq(tickets.id, id)).returning();
+        return result[0];
       }
       // Subscriptions
       async getSubscription(id) {
@@ -1343,6 +1355,13 @@ var init_db_storage = __esm({
         }
         return [];
       }
+      async getAdminProducts() {
+        const adminUser = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
+        if (!adminUser.length) return [];
+        return await db.select().from(products).where(
+          and(eq(products.userId, adminUser[0].id), eq(products.isActive, true))
+        );
+      }
       async createProduct(insertProduct) {
         const result = await db.insert(products).values(insertProduct).returning();
         return result[0];
@@ -1382,10 +1401,10 @@ var init_db_storage = __esm({
       }
       // Messages
       async getSentMessagesByUser(userId) {
-        return await db.select().from(sentMessages2).where(eq(sentMessages2.userId, userId)).orderBy(desc(sentMessages2.timestamp), desc(sentMessages2.id));
+        return await db.select().from(sentMessages).where(eq(sentMessages.userId, userId)).orderBy(desc(sentMessages.timestamp), desc(sentMessages.id));
       }
       async createSentMessage(insertMessage) {
-        const result = await db.insert(sentMessages2).values(insertMessage).returning();
+        const result = await db.insert(sentMessages).values(insertMessage).returning();
         return result[0];
       }
       async getReceivedMessagesByUser(userId) {
@@ -2015,41 +2034,16 @@ var init_db_storage = __esm({
         const result = await db.update(internalChats).set({ isRead: true }).where(eq(internalChats.id, id)).returning();
         return result[0];
       }
-      async getUnreadMessagesCountForUser(userId, userRole) {
-        try {
-          if (userRole === "user_level_2") {
-            const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-            if (!user[0] || !user[0].parentUserId) return 0;
-            const result = await db.select({ count: sql2`count(*)` }).from(internalChats).where(
-              and(
-                eq(internalChats.senderId, user[0].parentUserId),
-                eq(internalChats.receiverId, userId),
-                eq(internalChats.isRead, false)
-              )
-            );
-            return result[0]?.count || 0;
-          } else if (userRole === "user_level_1") {
-            const subUsers = await db.select({ id: users.id }).from(users).where(eq(users.parentUserId, userId));
-            if (subUsers.length === 0) return 0;
-            const subUserIds = subUsers.map((user) => user.id);
-            const result = await db.select({ count: sql2`count(*)` }).from(internalChats).where(
-              and(
-                inArray(internalChats.senderId, subUserIds),
-                eq(internalChats.receiverId, userId),
-                eq(internalChats.isRead, false)
-              )
-            );
-            return result[0]?.count || 0;
-          }
-          return 0;
-        } catch (error) {
-          console.error("Error getting unread messages count:", error);
-          return 0;
-        }
-      }
       async markAllMessagesAsReadForUser(userId, userRole) {
         try {
-          if (userRole === "user_level_2") {
+          if (userRole === "admin") {
+            await db.update(internalChats).set({ isRead: true }).where(
+              and(
+                eq(internalChats.receiverId, userId),
+                eq(internalChats.isRead, false)
+              )
+            );
+          } else if (userRole === "user_level_2") {
             const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
             if (!user[0] || !user[0].parentUserId) return true;
             await db.update(internalChats).set({ isRead: true }).where(
@@ -2075,6 +2069,56 @@ var init_db_storage = __esm({
         } catch (error) {
           console.error("Error marking messages as read:", error);
           return false;
+        }
+      }
+      async markMessagesFromSenderAsRead(senderId, receiverId) {
+        try {
+          await db.update(internalChats).set({ isRead: true }).where(
+            and(
+              eq(internalChats.senderId, senderId),
+              eq(internalChats.receiverId, receiverId),
+              eq(internalChats.isRead, false)
+            )
+          );
+          return true;
+        } catch (error) {
+          console.error("Error marking messages from sender as read:", error);
+          return false;
+        }
+      }
+      async getUnreadMessagesCountForUser(userId, userRole) {
+        try {
+          let whereClause;
+          if (userRole === "admin") {
+            whereClause = and(
+              eq(internalChats.receiverId, userId),
+              eq(internalChats.isRead, false)
+            );
+          } else if (userRole === "user_level_2") {
+            const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+            if (!user[0] || !user[0].parentUserId) return 0;
+            whereClause = and(
+              eq(internalChats.senderId, user[0].parentUserId),
+              eq(internalChats.receiverId, userId),
+              eq(internalChats.isRead, false)
+            );
+          } else if (userRole === "user_level_1") {
+            const subUsers = await db.select({ id: users.id }).from(users).where(eq(users.parentUserId, userId));
+            if (subUsers.length === 0) return 0;
+            const subUserIds = subUsers.map((user) => user.id);
+            whereClause = and(
+              inArray(internalChats.senderId, subUserIds),
+              eq(internalChats.receiverId, userId),
+              eq(internalChats.isRead, false)
+            );
+          } else {
+            return 0;
+          }
+          const result = await db.select({ count: sql2`count(*)` }).from(internalChats).where(whereClause);
+          return result[0]?.count || 0;
+        } catch (error) {
+          console.error("Error getting unread messages count:", error);
+          return 0;
         }
       }
       // FAQ methods
@@ -2572,101 +2616,78 @@ var init_db_storage = __esm({
       }
       async initializeDefaultPlugins() {
         try {
-          const existingWhatsapp = await this.getPluginByName("whatsapp");
-          if (!existingWhatsapp) {
-            await db.insert(plugins).values({
+          const pluginsToInitialize = [
+            {
               name: "whatsapp",
               displayName: "\u0648\u0627\u062A\u0633\u200C\u0627\u067E",
               description: "\u0627\u0631\u0633\u0627\u0644 \u0648 \u062F\u0631\u06CC\u0627\u0641\u062A \u067E\u06CC\u0627\u0645 \u0627\u0632 \u0637\u0631\u06CC\u0642 \u0648\u0627\u062A\u0633\u200C\u0627\u067E\u060C \u0686\u062A \u0628\u0627 \u0645\u0634\u062A\u0631\u06CC\u0627\u0646 \u0648 \u0627\u0631\u0633\u0627\u0644 \u067E\u06CC\u0627\u0645\u200C\u0647\u0627\u06CC \u0627\u062A\u0648\u0645\u0627\u062A\u06CC\u06A9",
-              icon: "MessageCircle",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default WhatsApp plugin initialized");
-          }
-          const existingVat = await this.getPluginByName("vat");
-          if (!existingVat) {
-            await db.insert(plugins).values({
+              icon: "MessageCircle"
+            },
+            {
               name: "vat",
               displayName: "\u0645\u0627\u0644\u06CC\u0627\u062A \u0628\u0631 \u0627\u0631\u0632\u0634 \u0627\u0641\u0632\u0648\u062F\u0647",
               description: "\u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0645\u0627\u0644\u06CC\u0627\u062A \u0628\u0631 \u0627\u0631\u0632\u0634 \u0627\u0641\u0632\u0648\u062F\u0647\u060C \u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0634\u0631\u06A9\u062A \u0648 \u0635\u062F\u0648\u0631 \u0641\u0627\u06A9\u062A\u0648\u0631 \u0631\u0633\u0645\u06CC",
-              icon: "Receipt",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default VAT plugin initialized");
-          }
-          const existingAi = await this.getPluginByName("ai");
-          if (!existingAi) {
-            await db.insert(plugins).values({
+              icon: "Receipt"
+            },
+            {
               name: "ai",
               displayName: "\u0647\u0648\u0634 \u0645\u0635\u0646\u0648\u0639\u06CC",
               description: "\u0627\u062A\u0635\u0627\u0644 \u0628\u0647 \u0633\u0631\u0648\u06CC\u0633\u200C\u0647\u0627\u06CC \u0647\u0648\u0634 \u0645\u0635\u0646\u0648\u0639\u06CC \u0645\u0627\u0646\u0646\u062F Gemini \u0648 Liara \u0628\u0631\u0627\u06CC \u067E\u0627\u0633\u062E\u200C\u062F\u0647\u06CC \u062E\u0648\u062F\u06A9\u0627\u0631",
-              icon: "Bot",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default AI plugin initialized");
-          }
-          const existingBackup = await this.getPluginByName("backup");
-          if (!existingBackup) {
-            await db.insert(plugins).values({
+              icon: "Bot"
+            },
+            {
               name: "backup",
               displayName: "\u067E\u0634\u062A\u06CC\u0628\u0627\u0646\u200C\u06AF\u06CC\u0631\u06CC",
               description: "\u067E\u0634\u062A\u06CC\u0628\u0627\u0646\u200C\u06AF\u06CC\u0631\u06CC \u0648 \u0628\u0627\u0632\u06CC\u0627\u0628\u06CC \u062F\u06CC\u062A\u0627\u0628\u06CC\u0633\u060C \u0645\u062F\u06CC\u0631\u06CC\u062A \u062D\u0627\u0644\u062A \u062A\u0639\u0645\u06CC\u0631\u0627\u062A \u0633\u0627\u06CC\u062A",
-              icon: "Database",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default Backup plugin initialized");
-          }
-          const existingCrypto = await this.getPluginByName("crypto-transactions");
-          if (!existingCrypto) {
-            await db.insert(plugins).values({
+              icon: "Database"
+            },
+            {
               name: "crypto-transactions",
               displayName: "\u0627\u0631\u0632 \u062F\u06CC\u062C\u06CC\u062A\u0627\u0644",
               description: "\u0645\u062F\u06CC\u0631\u06CC\u062A \u062A\u0631\u0627\u06A9\u0646\u0634\u200C\u0647\u0627\u06CC \u0627\u0631\u0632 \u062F\u06CC\u062C\u06CC\u062A\u0627\u0644\u060C \u06A9\u06CC\u0641 \u067E\u0648\u0644\u200C\u0647\u0627\u06CC \u06A9\u0631\u06CC\u067E\u062A\u0648 \u0648 \u067E\u0631\u062F\u0627\u062E\u062A \u0628\u0627 \u0631\u0645\u0632\u0627\u0631\u0632",
-              icon: "Wallet",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default Crypto Transactions plugin initialized");
-          }
-          const existingGuestChats = await this.getPluginByName("guest-chats");
-          if (!existingGuestChats) {
-            await db.insert(plugins).values({
+              icon: "Wallet"
+            },
+            {
               name: "guest-chats",
               displayName: "\u0686\u062A \u0645\u0647\u0645\u0627\u0646\u0627\u0646",
               description: "\u0686\u062A \u0622\u0646\u0644\u0627\u06CC\u0646 \u0628\u0627 \u0645\u0647\u0645\u0627\u0646\u0627\u0646 \u0633\u0627\u06CC\u062A\u060C \u067E\u0634\u062A\u06CC\u0628\u0627\u0646\u06CC \u0622\u0646\u0644\u0627\u06CC\u0646 \u0648 \u067E\u0627\u0633\u062E\u200C\u062F\u0647\u06CC \u0628\u0647 \u0633\u0648\u0627\u0644\u0627\u062A \u06A9\u0627\u0631\u0628\u0631\u0627\u0646",
-              icon: "MessageSquare",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default Guest Chats plugin initialized");
-          }
-          const existingLoginLogs = await this.getPluginByName("login-logs");
-          if (!existingLoginLogs) {
-            await db.insert(plugins).values({
+              icon: "MessageSquare"
+            },
+            {
               name: "login-logs",
               displayName: "\u0644\u0627\u06AF \u0648\u0631\u0648\u062F",
               description: "\u062B\u0628\u062A \u0648 \u0645\u0634\u0627\u0647\u062F\u0647 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0648\u0631\u0648\u062F \u06A9\u0627\u0631\u0628\u0631\u0627\u0646 \u0628\u0647 \u0633\u06CC\u0633\u062A\u0645",
-              icon: "History",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default Login Logs plugin initialized");
-          }
-          const existingEmail = await this.getPluginByName("email");
-          if (!existingEmail) {
-            await db.insert(plugins).values({
+              icon: "History"
+            },
+            {
               name: "email",
               displayName: "\u0627\u06CC\u0645\u06CC\u0644",
               description: "\u0645\u062F\u06CC\u0631\u06CC\u062A \u0648 \u0627\u0631\u0633\u0627\u0644 \u0627\u06CC\u0645\u06CC\u0644\u200C\u0647\u0627\u060C \u062A\u0646\u0638\u06CC\u0645\u0627\u062A SMTP \u0648 \u0646\u0645\u0648\u0646\u0647\u200C\u0647\u0627\u06CC \u0627\u06CC\u0645\u06CC\u0644",
-              icon: "Mail",
-              isEnabled: true,
-              isBuiltIn: true
-            });
-            console.log("\u2705 Default Email plugin initialized");
+              icon: "Mail"
+            },
+            {
+              name: "subscriptions",
+              displayName: "\u0627\u0634\u062A\u0631\u0627\u06A9\u200C\u0647\u0627",
+              description: "\u0645\u062F\u06CC\u0631\u06CC\u062A \u067E\u0644\u0646\u200C\u0647\u0627\u06CC \u0627\u0634\u062A\u0631\u0627\u06A9 \u0648 \u06A9\u0627\u0631\u0628\u0631\u0627\u0646",
+              icon: "Crown"
+            },
+            {
+              name: "internal-chats",
+              displayName: "\u0686\u062A \u062F\u0627\u062E\u0644\u06CC",
+              description: "\u0633\u06CC\u0633\u062A\u0645 \u06AF\u0641\u062A\u06AF\u0648\u06CC \u062F\u0627\u062E\u0644\u06CC \u0628\u06CC\u0646 \u0645\u062F\u06CC\u0631\u06CC\u062A\u060C \u0641\u0631\u0648\u0634\u0646\u062F\u06AF\u0627\u0646 \u0648 \u06A9\u0627\u0631\u0628\u0631\u0627\u0646",
+              icon: "MessageCircle"
+            }
+          ];
+          for (const pluginData of pluginsToInitialize) {
+            const existing = await this.getPluginByName(pluginData.name);
+            if (!existing) {
+              await db.insert(plugins).values({
+                ...pluginData,
+                isEnabled: true,
+                isBuiltIn: true
+              });
+              console.log(`\u2705 Default ${pluginData.displayName} plugin initialized`);
+            }
           }
         } catch (error) {
           console.error("Error initializing default plugins:", error);
@@ -7196,8 +7217,8 @@ ${missingFieldsText}
               await this.sendWhatsAppMessage(whatsappToken, sender, "\u0645\u062A\u0623\u0633\u0641\u0627\u0646\u0647 \u062E\u0637\u0627\u06CC\u06CC \u0631\u062E \u062F\u0627\u062F. \u0644\u0637\u0641\u0627\u064B \u0628\u0639\u062F\u0627\u064B \u062A\u0644\u0627\u0634 \u06A9\u0646\u06CC\u062F.", receiverUserId);
               return true;
             }
-            const products2 = await storage.getAllProducts(parentUser.id, "user_level_1");
-            const matchedProducts = products2.filter(
+            const products3 = await storage.getAllProducts(parentUser.id, "user_level_1");
+            const matchedProducts = products3.filter(
               (p) => p.isActive && (p.name.toLowerCase().includes(productName.toLowerCase()) || p.description && p.description.toLowerCase().includes(productName.toLowerCase()))
             );
             if (matchedProducts.length === 0) {
@@ -7718,6 +7739,7 @@ __export(email_sender_exports, {
   sendMail: () => sendMail
 });
 import nodemailer from "nodemailer";
+import fs2 from "fs";
 async function sendMail(userId, to, subject, text2, attachments = []) {
   try {
     const smtpHost = process.env.SMTP_HOST || "127.0.0.1";
@@ -7751,7 +7773,7 @@ async function sendMail(userId, to, subject, text2, attachments = []) {
     });
     try {
       const attachmentNames = attachments.map((a) => a.filename).join(", ");
-      await db.insert(sentMessages2).values({
+      await db.insert(sentMessages).values({
         userId,
         recipient: to,
         message: `Subject: ${subject}
@@ -7763,10 +7785,23 @@ Attachments: ${attachmentNames}` : ""}`
     } catch (dbErr) {
       console.error("Error saving sent message to DB:", dbErr);
     }
+    for (const a of attachments) {
+      if (a.path) {
+        fs2.unlink(a.path, (err) => {
+          if (err) console.error("Error deleting attachment file:", a.path, err);
+        });
+      }
+    }
     return { success: true, info };
   } catch (error) {
     console.error("Error sending mail:", error);
-    return { success: false, error };
+    for (const a of attachments) {
+      if (a.path) {
+        fs2.unlink(a.path, () => {
+        });
+      }
+    }
+    return { success: false, error: "\u062E\u0637\u0627 \u062F\u0631 \u0627\u0631\u0633\u0627\u0644 \u0627\u06CC\u0645\u06CC\u0644" };
   }
 }
 var email_sender_default;
@@ -7798,7 +7833,7 @@ import multer from "multer";
 import path2 from "path";
 import { fileURLToPath } from "url";
 import { z as z2 } from "zod";
-import fs2 from "fs";
+import fs3 from "fs";
 import { and as and3, desc as desc2 } from "drizzle-orm";
 
 // server/tron-service.ts
@@ -8155,7 +8190,8 @@ var TGJUService = class {
     const html = await response.text();
     const priceMatch = html.match(/قیمت\s*ریالی[\s\S]*?<td[^>]*>\s*([\d,]+)\s*<\/td>/i);
     if (!priceMatch || !priceMatch[1]) {
-      throw new Error(`\u0642\u06CC\u0645\u062A ${cryptoName} \u062F\u0631 \u0635\u0641\u062D\u0647 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F`);
+      console.warn(`\u26A0\uFE0F \u0642\u06CC\u0645\u062A ${cryptoName} \u062F\u0631 \u0635\u0641\u062D\u0647 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F\u060C \u0627\u0633\u062A\u0641\u0627\u062F\u0647 \u0627\u0632 \u0642\u06CC\u0645\u062A \u06F0`);
+      return 0;
     }
     const priceStr = priceMatch[1].replace(/,/g, "");
     const priceInRial = parseInt(priceStr, 10);
@@ -8604,8 +8640,8 @@ if (process.env.JWT_SECRET) {
 var storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path2.join(process.cwd(), "uploads");
-    if (!fs2.existsSync(uploadPath)) {
-      fs2.mkdirSync(uploadPath, { recursive: true });
+    if (!fs3.existsSync(uploadPath)) {
+      fs3.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
@@ -8652,8 +8688,8 @@ var emailUpload = multer({
 var whatsapp_storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path2.join(process.cwd(), "UploadsPicClienet");
-    if (!fs2.existsSync(uploadPath)) {
-      fs2.mkdirSync(uploadPath, { recursive: true });
+    if (!fs3.existsSync(uploadPath)) {
+      fs3.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
@@ -8678,8 +8714,8 @@ var uploadWhatsApp = multer({
 var stamp_storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path2.join(process.cwd(), "stamppic");
-    if (!fs2.existsSync(uploadPath)) {
-      fs2.mkdirSync(uploadPath, { recursive: true });
+    if (!fs3.existsSync(uploadPath)) {
+      fs3.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
@@ -8780,14 +8816,26 @@ async function registerRoutes(app2) {
     try {
       let username = req.body.username;
       if (!username && req.body.phone) {
-        username = req.body.phone.startsWith("98") ? "0" + req.body.phone.substring(2) : req.body.phone;
-      } else if (!username) {
+        const phone = req.body.phone.trim();
+        username = phone.startsWith("98") ? "0" + phone.substring(2) : phone.startsWith("0") ? phone : "0" + phone;
+      } else if (!username && req.body.email) {
         username = req.body.email.split("@")[0] + Math.random().toString(36).substr(2, 4);
       }
+      if (!username) {
+        return res.status(400).json({ message: "\u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC \u06CC\u0627 \u0634\u0645\u0627\u0631\u0647 \u062A\u0644\u0641\u0646 \u0628\u0631\u0627\u06CC \u062B\u0628\u062A\u200C\u0646\u0627\u0645 \u0627\u0644\u0632\u0627\u0645\u06CC \u0627\u0633\u062A" });
+      }
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        return res.status(400).json({ message: "\u0627\u06CC\u0646 \u0634\u0645\u0627\u0631\u0647 \u062A\u0644\u0641\u0646 \u0642\u0628\u0644\u0627\u064B \u062F\u0631 \u0633\u06CC\u0633\u062A\u0645 \u062B\u0628\u062A \u0634\u062F\u0647 \u0627\u0633\u062A" });
+      }
       const userData = {
-        ...req.body,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         username,
-        // اگر شماره واتس‌اپ نیومده، از شماره تلفن استفاده کن
+        phone: req.body.phone,
+        password: req.body.password,
+        role: req.body.role || "user_level_1",
+        email: req.body.email || void 0,
         whatsappNumber: req.body.whatsappNumber || req.body.phone
       };
       const validatedData = insertUserSchema.parse(userData);
@@ -8797,7 +8845,7 @@ async function registerRoutes(app2) {
           return res.status(400).json({ message: "\u06A9\u0627\u0631\u0628\u0631\u06CC \u0628\u0627 \u0627\u06CC\u0646 \u0627\u06CC\u0645\u06CC\u0644 \u0642\u0628\u0644\u0627\u064B \u062B\u0628\u062A \u0646\u0627\u0645 \u06A9\u0631\u062F\u0647 \u0627\u0633\u062A" });
         }
       }
-      const hashedPassword = await bcrypt3.hash(validatedData.password, 10);
+      const hashedPassword = await bcrypt3.hash(normalizeDigits(validatedData.password || "123456"), 10);
       const user = await storage.createUser({
         ...validatedData,
         password: hashedPassword
@@ -9005,6 +9053,26 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u06A9\u0627\u0631\u0628\u0631\u0627\u0646" });
     }
   });
+  app2.get("/api/users/admin-main", authenticateToken, async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const admin = allUsers.find((u) => u.role === "admin");
+      if (!admin) {
+        return res.status(404).json({ message: "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+      }
+      res.json({
+        id: admin.id,
+        username: admin.username,
+        displayName: admin.displayName,
+        email: admin.email,
+        role: admin.role,
+        avatar: admin.avatar
+      });
+    } catch (error) {
+      console.error("Error getting admin user:", error);
+      res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0645\u062F\u06CC\u0631" });
+    }
+  });
   app2.post("/api/users", authenticateToken, requireAdmin, async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
@@ -9018,7 +9086,7 @@ async function registerRoutes(app2) {
       if (existingUsernameUser) {
         return res.status(400).json({ message: "\u06A9\u0627\u0631\u0628\u0631\u06CC \u0628\u0627 \u0627\u06CC\u0646 \u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC \u0642\u0628\u0644\u0627\u064B \u062B\u0628\u062A \u0646\u0627\u0645 \u06A9\u0631\u062F\u0647 \u0627\u0633\u062A" });
       }
-      const hashedPassword = await bcrypt3.hash(validatedData.password, 10);
+      const hashedPassword = await bcrypt3.hash(normalizeDigits(validatedData.password || "123456"), 10);
       const user = await storage.createUser({
         ...validatedData,
         password: hashedPassword
@@ -9493,7 +9561,7 @@ ${newPassword}
   app2.get("/api/tickets", authenticateToken, async (req, res) => {
     try {
       let tickets2;
-      if (req.user.role === "admin") {
+      if (req.user.role === "admin" || req.user.role === "user_level_1") {
         tickets2 = await storage.getAllTickets();
       } else {
         tickets2 = await storage.getTicketsByUser(req.user.id);
@@ -9536,7 +9604,7 @@ ${newPassword}
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0627\u06CC\u062C\u0627\u062F \u062A\u06CC\u06A9\u062A" });
     }
   });
-  app2.put("/api/tickets/:id/reply", authenticateToken, requireAdmin, async (req, res) => {
+  app2.put("/api/tickets/:id/reply", authenticateToken, requireAdminOrLevel1, async (req, res) => {
     try {
       const { id } = req.params;
       const validatedData = ticketReplySchema.parse({
@@ -9567,7 +9635,7 @@ ${newPassword}
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u067E\u0627\u0633\u062E \u0628\u0647 \u062A\u06CC\u06A9\u062A" });
     }
   });
-  app2.delete("/api/tickets/:id", authenticateToken, requireAdmin, async (req, res) => {
+  app2.delete("/api/tickets/:id", authenticateToken, requireAdminOrLevel1, async (req, res) => {
     try {
       const { id } = req.params;
       const success = await storage.deleteTicket(id);
@@ -9761,10 +9829,44 @@ ${newPassword}
   });
   app2.get("/api/products", authenticateToken, async (req, res) => {
     try {
-      const products2 = await storage.getAllProducts(req.user.id, req.user.role);
-      res.json(products2);
+      const products3 = await storage.getAllProducts(req.user.id, req.user.role);
+      res.json(products3);
     } catch (error) {
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u0645\u062D\u0635\u0648\u0644\u0627\u062A" });
+    }
+  });
+  app2.get("/api/admin-products", authenticateToken, async (req, res) => {
+    try {
+      if (req.user?.role !== "user_level_1") {
+        return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0645\u062D\u062F\u0648\u062F" });
+      }
+      const adminProducts = await storage.getAdminProducts();
+      res.json(adminProducts);
+    } catch (error) {
+      console.error("\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u0645\u062D\u0635\u0648\u0644\u0627\u062A \u0627\u062F\u0645\u06CC\u0646:", error);
+      res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u0645\u062D\u0635\u0648\u0644\u0627\u062A" });
+    }
+  });
+  app2.post("/api/admin-products/:id/import", authenticateToken, async (req, res) => {
+    try {
+      if (req.user?.role !== "user_level_1") {
+        return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0645\u062D\u062F\u0648\u062F" });
+      }
+      const { id } = req.params;
+      const adminProducts = await storage.getAdminProducts();
+      const product = adminProducts.find((p) => p.id === id);
+      if (!product) return res.status(404).json({ message: "\u0645\u062D\u0635\u0648\u0644 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+      const userProducts = await storage.getAllProducts(req.user.id, req.user.role);
+      const alreadyExists = userProducts.some((p) => p.name === product.name);
+      if (alreadyExists) {
+        return res.status(409).json({ message: "\u0627\u06CC\u0646 \u0645\u062D\u0635\u0648\u0644 \u0642\u0628\u0644\u0627\u064B \u0628\u0647 \u06A9\u0627\u062A\u0627\u0644\u0648\u06AF \u0634\u0645\u0627 \u0627\u0636\u0627\u0641\u0647 \u0634\u062F\u0647 \u0627\u0633\u062A" });
+      }
+      const { id: _id, userId: _uid, createdAt: _ca, ...rest } = product;
+      const imported = await storage.createProduct({ ...rest, userId: req.user.id });
+      res.json(imported);
+    } catch (error) {
+      console.error("\u062E\u0637\u0627 \u062F\u0631 import \u0645\u062D\u0635\u0648\u0644:", error);
+      res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0627\u0641\u0632\u0648\u062F\u0646 \u0645\u062D\u0635\u0648\u0644" });
     }
   });
   app2.get("/api/products/shop", authenticateToken, async (req, res) => {
@@ -9772,8 +9874,8 @@ ${newPassword}
       if (req.user?.role !== "user_level_2") {
         return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0645\u062D\u062F\u0648\u062F - \u0627\u06CC\u0646 \u0639\u0645\u0644\u06CC\u0627\u062A \u0645\u062E\u0635\u0648\u0635 \u06A9\u0627\u0631\u0628\u0631\u0627\u0646 \u0633\u0637\u062D \u06F2 \u0627\u0633\u062A" });
       }
-      const products2 = await storage.getAllProducts(req.user.id, req.user.role);
-      res.json(products2);
+      const products3 = await storage.getAllProducts(req.user.id, req.user.role);
+      res.json(products3);
     } catch (error) {
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u0645\u062D\u0635\u0648\u0644\u0627\u062A \u0641\u0631\u0648\u0634\u06AF\u0627\u0647" });
     }
@@ -10602,7 +10704,7 @@ ${newPassword}
             totalPrice: item.totalPrice
           });
         }
-        const { nanoid: nanoid2 } = await import("nanoid");
+        const { nanoid: nanoid3 } = await import("nanoid");
         await storage.createTransaction({
           userId: req.user.id,
           orderId: order.id,
@@ -10612,7 +10714,7 @@ ${newPassword}
           transactionDate: (/* @__PURE__ */ new Date()).toLocaleDateString("fa-IR"),
           transactionTime: (/* @__PURE__ */ new Date()).toLocaleTimeString("fa-IR"),
           accountSource: "\u0645\u0648\u062C\u0648\u062F\u06CC \u06A9\u0644",
-          referenceId: `OP-${nanoid2(10)}`
+          referenceId: `OP-${nanoid3(10)}`
         });
         createdOrders.push(order);
       }
@@ -10932,7 +11034,7 @@ ${newPassword}
               const orderAmount = parseFloat(order.totalAmount);
               if (currentBalance >= orderAmount) {
                 await storage.updateOrderStatus(order.id, "pending", order.sellerId);
-                const { nanoid: nanoid2 } = await import("nanoid");
+                const { nanoid: nanoid3 } = await import("nanoid");
                 await storage.createTransaction({
                   userId: transaction.userId,
                   orderId: order.id,
@@ -10943,7 +11045,7 @@ ${newPassword}
                   transactionDate: (/* @__PURE__ */ new Date()).toLocaleDateString("fa-IR"),
                   transactionTime: (/* @__PURE__ */ new Date()).toLocaleTimeString("fa-IR"),
                   accountSource: "\u0645\u0648\u062C\u0648\u062F\u06CC \u06A9\u0644",
-                  referenceId: `OP-${nanoid2(10)}`
+                  referenceId: `OP-${nanoid3(10)}`
                   // شماره پیگیری منحصر به فرد
                 });
                 currentBalance -= orderAmount;
@@ -11035,13 +11137,25 @@ ${newPassword}
     try {
       const user = req.user;
       let chats;
-      if (user.role === "user_level_2") {
+      if (user.role === "admin") {
+        const allUsers = await storage.getAllUsers();
+        const level1Users = allUsers.filter((u) => u.role === "user_level_1");
+        let allChats = [];
+        for (const seller of level1Users) {
+          const sellerChats = await storage.getInternalChatsBetweenUsers(user.id, seller.id);
+          allChats = [...allChats, ...sellerChats];
+        }
+        chats = allChats;
+      } else if (user.role === "user_level_2") {
         if (!user.parentUserId) {
           return res.status(400).json({ message: "\u0641\u0631\u0648\u0634\u0646\u062F\u0647\u200C\u0627\u06CC \u0628\u0631\u0627\u06CC \u0634\u0645\u0627 \u062A\u0639\u06CC\u0646 \u0646\u0634\u062F\u0647 \u0627\u0633\u062A" });
         }
         chats = await storage.getInternalChatsBetweenUsers(user.id, user.parentUserId);
       } else if (user.role === "user_level_1") {
-        chats = await storage.getInternalChatsForSeller(user.id);
+        const admin = (await storage.getAllUsers()).find((u) => u.role === "admin");
+        const customerChats = await storage.getInternalChatsForSeller(user.id);
+        const adminChats = admin ? await storage.getInternalChatsBetweenUsers(user.id, admin.id) : [];
+        chats = [...customerChats, ...adminChats];
       } else {
         return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0645\u062C\u0627\u0632 \u0646\u06CC\u0633\u062A" });
       }
@@ -11054,8 +11168,8 @@ ${newPassword}
   app2.post("/api/internal-chats", authenticateToken, async (req, res) => {
     try {
       const user = req.user;
-      if (user.role !== "user_level_1" && user.role !== "user_level_2") {
-        return res.status(403).json({ message: "\u0641\u0642\u0637 \u06A9\u0627\u0631\u0628\u0631\u0627\u0646 \u0633\u0637\u062D \u06F1 \u0648 \u06F2 \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u0646\u062F \u067E\u06CC\u0627\u0645 \u0627\u0631\u0633\u0627\u0644 \u06A9\u0646\u0646\u062F" });
+      if (user.role !== "admin" && user.role !== "user_level_1" && user.role !== "user_level_2") {
+        return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0645\u062C\u0627\u0632 \u0646\u06CC\u0633\u062A" });
       }
       const validatedData = insertInternalChatSchema.parse({
         ...req.body,
@@ -11067,8 +11181,21 @@ ${newPassword}
         }
       } else if (user.role === "user_level_1") {
         const receiver = await storage.getUser(validatedData.receiverId);
-        if (!receiver || receiver.parentUserId !== user.id) {
-          return res.status(400).json({ message: "\u0634\u0645\u0627 \u0641\u0642\u0637 \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u06CC\u062F \u0628\u0627 \u0645\u0634\u062A\u0631\u06CC\u0627\u0646 \u062E\u0648\u062F \u0686\u062A \u06A9\u0646\u06CC\u062F" });
+        if (!receiver) {
+          return res.status(404).json({ message: "\u06AF\u06CC\u0631\u0646\u062F\u0647 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+        }
+        const isAdmin = receiver.role === "admin";
+        const isCustomer = receiver.parentUserId === user.id;
+        if (!isAdmin && !isCustomer) {
+          return res.status(400).json({ message: "\u0634\u0645\u0627 \u0641\u0642\u0637 \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u06CC\u062F \u0628\u0627 \u0645\u0634\u062A\u0631\u06CC\u0627\u0646 \u062E\u0648\u062F \u06CC\u0627 \u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645 \u0686\u062A \u06A9\u0646\u06CC\u062F" });
+        }
+      } else if (user.role === "admin") {
+        const receiver = await storage.getUser(validatedData.receiverId);
+        if (!receiver) {
+          return res.status(404).json({ message: "\u06AF\u06CC\u0631\u0646\u062F\u0647 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+        }
+        if (receiver.role !== "user_level_1") {
+          return res.status(400).json({ message: "\u0645\u062F\u06CC\u0631 \u0641\u0642\u0637 \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u062F \u0628\u0627 \u0641\u0631\u0648\u0634\u0646\u062F\u06AF\u0627\u0646 \u0686\u062A \u06A9\u0646\u062F" });
         }
       }
       const chat = await storage.createInternalChat(validatedData);
@@ -11117,16 +11244,17 @@ ${newPassword}
   });
   app2.patch("/api/internal-chats/mark-all-read", authenticateToken, async (req, res) => {
     try {
-      const user = req.user;
-      if (user.role !== "user_level_1" && user.role !== "user_level_2") {
-        return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0645\u062D\u062F\u0648\u062F" });
-      }
-      const success = await storage.markAllMessagesAsReadForUser(user.id, user.role);
-      if (success) {
-        res.json({ message: "\u062A\u0645\u0627\u0645 \u067E\u06CC\u0627\u0645\u200C\u0647\u0627 \u062E\u0648\u0627\u0646\u062F\u0647 \u0634\u062F\u0647 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u0634\u062F\u0646\u062F" });
+      const { senderId } = req.body;
+      const currentUserId = req.user.id;
+      console.log(`[Chat] Marking as read: senderId=${senderId}, receiverId=${currentUserId}`);
+      if (senderId) {
+        await storage.markMessagesFromSenderAsRead(senderId, currentUserId);
+        console.log(`[Chat] Marked specific messages as read for sender ${senderId}`);
       } else {
-        res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u067E\u06CC\u0627\u0645\u200C\u0647\u0627" });
+        await storage.markAllMessagesAsReadForUser(currentUserId, req.user.role);
+        console.log(`[Chat] Marked ALL messages as read for receiver ${currentUserId}`);
       }
+      res.json({ message: "\u062A\u0645\u0627\u0645 \u067E\u06CC\u0627\u0645\u200C\u0647\u0627 \u0628\u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u062E\u0648\u0627\u0646\u062F\u0647 \u0634\u062F" });
     } catch (error) {
       console.error("Error marking all messages as read:", error);
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u067E\u06CC\u0627\u0645\u200C\u0647\u0627" });
@@ -11489,15 +11617,15 @@ ${newPassword}
         return res.status(404).json({ message: "\u06A9\u0627\u0631\u0628\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
       }
       const invoiceDir = path2.join(process.cwd(), "invoice");
-      if (!fs2.existsSync(invoiceDir)) {
-        fs2.mkdirSync(invoiceDir, { recursive: true });
+      if (!fs3.existsSync(invoiceDir)) {
+        fs3.mkdirSync(invoiceDir, { recursive: true });
       }
       const base64Data = imageData.replace(/^data:image\/png;base64,/, "");
       const imageBuffer = Buffer.from(base64Data, "base64");
       const timestamp2 = Date.now();
       const filename = `\u0641\u0627\u06A9\u062A\u0648\u0631-\u0633\u0641\u0627\u0631\u0634-${orderId}-${timestamp2}.png`;
       const filepath = path2.join(invoiceDir, filename);
-      fs2.writeFileSync(filepath, imageBuffer);
+      fs3.writeFileSync(filepath, imageBuffer);
       console.log(`\u2705 \u0641\u0627\u06A9\u062A\u0648\u0631 \u06A9\u0627\u0631\u0628\u0631 \u0633\u0637\u062D 2 \u0630\u062E\u06CC\u0631\u0647 \u0634\u062F: ${filename}`);
       if (user.whatsappNumber) {
         try {
@@ -11609,8 +11737,8 @@ ${newPassword}
       ];
       let fileDeleted = false;
       for (const filePath of uploadPaths) {
-        if (fs2.existsSync(filePath)) {
-          fs2.unlinkSync(filePath);
+        if (fs3.existsSync(filePath)) {
+          fs3.unlinkSync(filePath);
           console.log(`\u{1F5D1}\uFE0F \u0641\u0627\u06CC\u0644 \u0645\u0648\u0642\u062A \u062D\u0630\u0641 \u0634\u062F: ${filename}`);
           fileDeleted = true;
           break;
@@ -11751,8 +11879,8 @@ ${newPassword}
       const { promisify } = await import("util");
       const execAsync = promisify(exec);
       const backupsDir = path2.join(process.cwd(), "backups");
-      if (!fs2.existsSync(backupsDir)) {
-        fs2.mkdirSync(backupsDir, { recursive: true });
+      if (!fs3.existsSync(backupsDir)) {
+        fs3.mkdirSync(backupsDir, { recursive: true });
       }
       const timestamp2 = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-").slice(0, -5);
       const backupFileName = `backup-${timestamp2}.sql`;
@@ -11783,8 +11911,8 @@ ${newPassword}
   const backup_storage_config = multer.diskStorage({
     destination: (req, file, cb) => {
       const uploadPath = path2.join(process.cwd(), "backups");
-      if (!fs2.existsSync(uploadPath)) {
-        fs2.mkdirSync(uploadPath, { recursive: true });
+      if (!fs3.existsSync(uploadPath)) {
+        fs3.mkdirSync(uploadPath, { recursive: true });
       }
       cb(null, uploadPath);
     },
@@ -11844,13 +11972,13 @@ ${newPassword}
         return res.status(403).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u063A\u06CC\u0631\u0645\u062C\u0627\u0632" });
       }
       const backupsDir = path2.join(process.cwd(), "backups");
-      if (!fs2.existsSync(backupsDir)) {
+      if (!fs3.existsSync(backupsDir)) {
         return res.json({ backups: [] });
       }
-      const files = fs2.readdirSync(backupsDir);
+      const files = fs3.readdirSync(backupsDir);
       const backups = files.filter((file) => file.endsWith(".sql")).map((file) => {
         const filePath = path2.join(backupsDir, file);
-        const stats = fs2.statSync(filePath);
+        const stats = fs3.statSync(filePath);
         return {
           filename: file,
           size: stats.size,
@@ -11881,7 +12009,7 @@ ${newPassword}
       if (!requestedFilePath.startsWith(backupsDir + path2.sep)) {
         return res.status(400).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0628\u0647 \u0641\u0627\u06CC\u0644 \u063A\u06CC\u0631\u0645\u062C\u0627\u0632 \u0627\u0633\u062A" });
       }
-      if (!fs2.existsSync(requestedFilePath)) {
+      if (!fs3.existsSync(requestedFilePath)) {
         return res.status(404).json({ message: "\u0641\u0627\u06CC\u0644 \u0628\u06A9\u200C\u0622\u067E \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
       }
       res.download(requestedFilePath, filename, (err) => {
@@ -11914,10 +12042,10 @@ ${newPassword}
       if (!requestedFilePath.startsWith(backupsDir + path2.sep)) {
         return res.status(400).json({ message: "\u062F\u0633\u062A\u0631\u0633\u06CC \u0628\u0647 \u0641\u0627\u06CC\u0644 \u063A\u06CC\u0631\u0645\u062C\u0627\u0632 \u0627\u0633\u062A" });
       }
-      if (!fs2.existsSync(requestedFilePath)) {
+      if (!fs3.existsSync(requestedFilePath)) {
         return res.status(404).json({ message: "\u0641\u0627\u06CC\u0644 \u0628\u06A9\u200C\u0622\u067E \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
       }
-      fs2.unlinkSync(requestedFilePath);
+      fs3.unlinkSync(requestedFilePath);
       res.json({ message: "\u0628\u06A9\u200C\u0622\u067E \u0628\u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u062D\u0630\u0641 \u0634\u062F" });
     } catch (error) {
       console.error("Error deleting backup:", error);
@@ -12444,8 +12572,8 @@ ${newPassword}
       if (!seller || seller.role !== "user_level_1") {
         return res.status(404).json({ message: "\u0641\u0631\u0648\u0634\u06AF\u0627\u0647 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
       }
-      const products2 = await storage.getProductsByUser(seller.id);
-      const activeProducts = products2.filter((p) => p.isActive);
+      const products3 = await storage.getProductsByUser(seller.id);
+      const activeProducts = products3.filter((p) => p.isActive);
       res.json(activeProducts);
     } catch (error) {
       console.error("Error getting vitrin products:", error);
@@ -12529,10 +12657,10 @@ ${newPassword}
         return res.status(404).json({ response: "\u0641\u0631\u0648\u0634\u06AF\u0627\u0647 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F." });
       }
       const { aiService: aiService2 } = await Promise.resolve().then(() => (init_ai_service(), ai_service_exports));
-      const products2 = await storage.getProductsByUser(seller.id);
+      const products3 = await storage.getProductsByUser(seller.id);
       const storeName = seller.storeName || `\u0641\u0631\u0648\u0634\u06AF\u0627\u0647 ${seller.firstName}`;
       if (!aiService2.isActive()) {
-        const productNames = products2.slice(0, 5).map((p) => p.name).join("\u060C ");
+        const productNames = products3.slice(0, 5).map((p) => p.name).join("\u060C ");
         return res.json({
           response: `\u0633\u0644\u0627\u0645! \u0628\u0647 ${storeName} \u062E\u0648\u0634 \u0622\u0645\u062F\u06CC\u062F. \u{1F31F}
 
@@ -12543,7 +12671,7 @@ ${productNames ? `\u0645\u062D\u0635\u0648\u0644\u0627\u062A \u067E\u0631\u0641\
 \u0628\u0631\u0627\u06CC \u06A9\u0633\u0628 \u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0628\u06CC\u0634\u062A\u0631 \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u06CC\u062F \u0645\u062D\u0635\u0648\u0644\u0627\u062A \u0631\u0627 \u062F\u0631 \u062A\u0628 "\u0648\u06CC\u062A\u0631\u06CC\u0646" \u0645\u0634\u0627\u0647\u062F\u0647 \u06A9\u0646\u06CC\u062F.`
         });
       }
-      const productList = products2.slice(0, 10).map((p) => `- ${p.name}: ${p.priceAfterDiscount || p.priceBeforeDiscount} \u062A\u0648\u0645\u0627\u0646`).join("\n");
+      const productList = products3.slice(0, 10).map((p) => `- ${p.name}: ${p.priceAfterDiscount || p.priceBeforeDiscount} \u062A\u0648\u0645\u0627\u0646`).join("\n");
       const systemContext = `\u0634\u0645\u0627 \u062F\u0633\u062A\u06CC\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062F \u0641\u0631\u0648\u0634\u06AF\u0627\u0647 "${storeName}" \u0647\u0633\u062A\u06CC\u062F. \u0648\u0638\u06CC\u0641\u0647 \u0634\u0645\u0627 \u06A9\u0645\u06A9 \u0628\u0647 \u0645\u0634\u062A\u0631\u06CC\u0627\u0646 \u0648 \u067E\u0627\u0633\u062E \u0628\u0647 \u0633\u0648\u0627\u0644\u0627\u062A \u0622\u0646\u0647\u0627 \u062F\u0631\u0628\u0627\u0631\u0647 \u0645\u062D\u0635\u0648\u0644\u0627\u062A \u0648 \u062E\u062F\u0645\u0627\u062A \u0641\u0631\u0648\u0634\u06AF\u0627\u0647 \u0627\u0633\u062A.
 
 \u0645\u062D\u0635\u0648\u0644\u0627\u062A \u0645\u0648\u062C\u0648\u062F \u062F\u0631 \u0641\u0631\u0648\u0634\u06AF\u0627\u0647:
@@ -12968,34 +13096,35 @@ ${productList || "\u062F\u0631 \u062D\u0627\u0644 \u062D\u0627\u0636\u0631 \u064
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u0627\u06CC\u0645\u06CC\u0644\u200C\u0647\u0627" });
     }
   });
-  app2.post("/api/emails/receive", async (req, res) => {
-    try {
-      const { userId, sender, subject, message } = req.body;
-      if (!userId || !sender || !message) {
-        return res.status(400).json({ message: "\u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0646\u0627\u0642\u0635 \u0627\u0633\u062A" });
-      }
-      await db.insert(receivedMessages).values({
-        userId,
-        whatsiPlusId: `email_${Date.now()}_${Math.random()}`,
-        sender,
-        message: `\u0645\u0648\u0636\u0648\u0639: ${subject || "\u0628\u062F\u0648\u0646 \u0645\u0648\u0636\u0648\u0639"}
-
-${message}`,
-        status: "\u062E\u0648\u0627\u0646\u062F\u0647 \u0646\u0634\u062F\u0647",
-        timestamp: /* @__PURE__ */ new Date()
-      });
-      console.log(`\u{1F4E7} \u0627\u06CC\u0645\u06CC\u0644 \u062C\u062F\u06CC\u062F \u062F\u0631\u06CC\u0627\u0641\u062A \u0634\u062F \u0627\u0632: ${sender}`);
-      res.json({ message: "\u0627\u06CC\u0645\u06CC\u0644 \u0628\u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u062F\u0631\u06CC\u0627\u0641\u062A \u0634\u062F" });
-    } catch (error) {
-      console.error("\u062E\u0637\u0627:", error);
-      res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0630\u062E\u06CC\u0631\u0647 \u0627\u06CC\u0645\u06CC\u0644" });
-    }
-  });
   app2.get("/api/sent-messages", authenticateToken, async (req, res) => {
     try {
       if (!req.user?.id) return res.status(401).json({ message: "\u06A9\u0627\u0631\u0628\u0631 \u062A\u0634\u062E\u06CC\u0635 \u062F\u0627\u062F\u0647 \u0646\u0634\u062F" });
       const rows = await db.select().from(sentMessages).where(eq(sentMessages.userId, req.user.id)).orderBy(desc2(sentMessages.timestamp));
-      res.json(rows);
+      const parsed = rows.map((row) => {
+        let subject = "(\u0628\u062F\u0648\u0646 \u0645\u0648\u0636\u0648\u0639)";
+        let body = row.message;
+        let attachments = [];
+        const subjectMatch = row.message.match(/^Subject: (.+)\n\n/);
+        if (subjectMatch) {
+          subject = subjectMatch[1];
+          body = row.message.slice(subjectMatch[0].length);
+        }
+        const attachmentsMatch = body.match(/\n\nAttachments: (.+)$/);
+        if (attachmentsMatch) {
+          attachments = attachmentsMatch[1].split(", ").filter(Boolean);
+          body = body.slice(0, body.length - attachmentsMatch[0].length);
+        }
+        return {
+          id: row.id,
+          to: row.recipient,
+          subject,
+          body,
+          attachments,
+          status: row.status,
+          timestamp: row.timestamp
+        };
+      });
+      res.json(parsed);
     } catch (error) {
       console.error("Error fetching sent messages:", error);
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u067E\u06CC\u0627\u0645\u200C\u0647\u0627\u06CC \u0627\u0631\u0633\u0627\u0644\u06CC" });
@@ -13010,7 +13139,7 @@ ${message}`,
       const attachments = (files || []).map((f) => ({ filename: f.originalname, path: f.path }));
       const result = await sendMail2(req.user.id, to, subject || "(\u0628\u062F\u0648\u0646 \u0645\u0648\u0636\u0648\u0639)", message, attachments);
       if (!result.success) {
-        return res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0627\u0631\u0633\u0627\u0644 \u0627\u06CC\u0645\u06CC\u0644", error: result.error });
+        return res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u0627\u0631\u0633\u0627\u0644 \u0627\u06CC\u0645\u06CC\u0644" });
       }
       res.json({ message: "\u0627\u06CC\u0645\u06CC\u0644 \u0628\u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u0627\u0631\u0633\u0627\u0644 \u0634\u062F", info: result.info });
     } catch (error) {
@@ -13062,7 +13191,8 @@ ${message}`,
         return res.status(404).json({ message: "\u06A9\u0627\u0631\u0628\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
       }
       const emailPrefix = user.email ? user.email.split("@")[0] : "";
-      res.json({ emailPrefix });
+      const domain = process.env.REPLIT_DEV_DOMAIN || process.env.DOMAIN || "localhost";
+      res.json({ emailPrefix, domain });
     } catch (error) {
       console.error("\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0627\u06CC\u0645\u06CC\u0644:", error);
       res.status(500).json({ message: "\u062E\u0637\u0627 \u062F\u0631 \u062F\u0631\u06CC\u0627\u0641\u062A \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0627\u06CC\u0645\u06CC\u0644" });
@@ -13092,7 +13222,7 @@ ${message}`,
 
 // server/vite.ts
 import express2 from "express";
-import fs3 from "fs";
+import fs4 from "fs";
 import path4 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
@@ -13182,7 +13312,7 @@ async function setupVite(app2, server) {
         "client",
         "index.html"
       );
-      let template = await fs3.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs4.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -13197,7 +13327,7 @@ async function setupVite(app2, server) {
 }
 function serveStatic(app2) {
   const distPath = path4.resolve(import.meta.dirname, "public");
-  if (!fs3.existsSync(distPath)) {
+  if (!fs4.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
@@ -13213,7 +13343,7 @@ init_whatsapp_service();
 init_ai_service();
 
 // server/cleanup-service.ts
-import fs4 from "fs";
+import fs5 from "fs";
 import path5 from "path";
 var CleanupService = class {
   intervalId = null;
@@ -13241,20 +13371,20 @@ var CleanupService = class {
       path5.join(process.cwd(), "UploadsPicClienet")
     ];
     uploadDirs.forEach((uploadsDir) => {
-      if (!fs4.existsSync(uploadsDir)) {
+      if (!fs5.existsSync(uploadsDir)) {
         return;
       }
       try {
-        const files = fs4.readdirSync(uploadsDir);
+        const files = fs5.readdirSync(uploadsDir);
         const now = Date.now();
         let deletedCount = 0;
         files.forEach((file) => {
           const filePath = path5.join(uploadsDir, file);
           try {
-            const stats = fs4.statSync(filePath);
+            const stats = fs5.statSync(filePath);
             const fileAge = now - stats.mtimeMs;
             if (fileAge > this.FILE_MAX_AGE) {
-              fs4.unlinkSync(filePath);
+              fs5.unlinkSync(filePath);
               deletedCount++;
               console.log(`\u{1F5D1}\uFE0F  \u0641\u0627\u06CC\u0644 \u0642\u062F\u06CC\u0645\u06CC \u062D\u0630\u0641 \u0634\u062F: ${file} \u0627\u0632 ${path5.basename(uploadsDir)}`);
             }
@@ -13279,16 +13409,15 @@ import { SMTPServer } from "smtp-server";
 // server/smtp-receiver.ts
 init_db_storage();
 init_schema();
+import { nanoid as nanoid2 } from "nanoid";
 var SMTPReceiver = class {
-  receivedEmails = [];
   async saveEmail(message) {
     try {
-      this.receivedEmails.push(message);
       await db.insert(receivedMessages).values({
         userId: message.userId,
-        whatsiPlusId: `smtp_${Date.now()}_${Math.random()}`,
+        whatsiPlusId: `smtp_${nanoid2()}`,
         sender: message.from,
-        message: `\u{1F4E7} **${message.subject}**
+        message: `\u0645\u0648\u0636\u0648\u0639: ${message.subject}
 
 ${message.text}`,
         status: "\u062E\u0648\u0627\u0646\u062F\u0647 \u0646\u0634\u062F\u0647",
@@ -13300,12 +13429,6 @@ ${message.text}`,
       console.error("\u062E\u0637\u0627 \u062F\u0631 \u0630\u062E\u06CC\u0631\u0647 \u0627\u06CC\u0645\u06CC\u0644:", error);
       return false;
     }
-  }
-  getReceivedEmails() {
-    return this.receivedEmails;
-  }
-  clearReceivedEmails() {
-    this.receivedEmails = [];
   }
 };
 var smtpReceiver = new SMTPReceiver();
