@@ -917,12 +917,29 @@ export class MemStorage implements IStorage {
 
   // User Subscriptions
   async getUserSubscription(userId: string): Promise<UserSubscription & { subscriptionName?: string | null; subscriptionDescription?: string | null } | undefined> {
-    const userSub = Array.from(this.userSubscriptions.values()).find(sub => sub.userId === userId && sub.status === 'active');
+    const userSub = Array.from(this.userSubscriptions.values())
+      .filter(sub => sub.userId === userId)
+      .sort((a, b) => (b.endDate?.getTime() || 0) - (a.endDate?.getTime() || 0))[0];
     if (!userSub) return undefined;
-    
+
+    const remainingDays = Math.max(0, Math.ceil((userSub.endDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+    const status = remainingDays > 0 ? 'active' : 'expired';
+    const currentSubscription = userSub.remainingDays === remainingDays && userSub.status === status
+      ? userSub
+      : {
+          ...userSub,
+          remainingDays,
+          status,
+          updatedAt: new Date(),
+        };
+
+    if (currentSubscription !== userSub) {
+      this.userSubscriptions.set(userSub.id, currentSubscription);
+    }
+
     const subscription = this.subscriptions.get(userSub.subscriptionId);
     return {
-      ...userSub,
+      ...currentSubscription,
       subscriptionName: subscription?.name,
       subscriptionDescription: subscription?.description,
     };
@@ -977,10 +994,12 @@ export class MemStorage implements IStorage {
     const userSubscription = this.userSubscriptions.get(id);
     if (!userSubscription) return undefined;
     
-    const status = remainingDays <= 0 ? 'expired' : 'active';
+    const normalizedDays = Math.max(0, Math.floor(remainingDays));
+    const status = normalizedDays <= 0 ? 'expired' : 'active';
     const updatedUserSubscription = { 
       ...userSubscription, 
-      remainingDays,
+      remainingDays: normalizedDays,
+      endDate: new Date(Date.now() + normalizedDays * 24 * 60 * 60 * 1000),
       status,
       updatedAt: new Date()
     };

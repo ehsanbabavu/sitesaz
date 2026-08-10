@@ -1498,12 +1498,22 @@ var init_db_storage = __esm({
           updatedAt: userSubscriptions.updatedAt,
           subscriptionName: subscriptions.name,
           subscriptionDescription: subscriptions.description
-        }).from(userSubscriptions).innerJoin(subscriptions, eq(userSubscriptions.subscriptionId, subscriptions.id)).where(and(
-          eq(userSubscriptions.userId, userId),
-          eq(userSubscriptions.status, "active"),
-          gte(userSubscriptions.endDate, /* @__PURE__ */ new Date())
-        )).orderBy(desc(userSubscriptions.endDate)).limit(1);
-        return result[0];
+        }).from(userSubscriptions).innerJoin(subscriptions, eq(userSubscriptions.subscriptionId, subscriptions.id)).where(eq(userSubscriptions.userId, userId)).orderBy(desc(userSubscriptions.endDate)).limit(1);
+        const userSubscription = result[0];
+        if (!userSubscription) return void 0;
+        const remainingDays = Math.max(0, Math.ceil((userSubscription.endDate.getTime() - Date.now()) / (24 * 60 * 60 * 1e3)));
+        const status = remainingDays > 0 ? "active" : "expired";
+        if (userSubscription.remainingDays !== remainingDays || userSubscription.status !== status) {
+          const updated = await db.update(userSubscriptions).set({ remainingDays, status, updatedAt: /* @__PURE__ */ new Date() }).where(eq(userSubscriptions.id, userSubscription.id)).returning();
+          if (updated[0]) {
+            return {
+              ...updated[0],
+              subscriptionName: userSubscription.subscriptionName,
+              subscriptionDescription: userSubscription.subscriptionDescription
+            };
+          }
+        }
+        return userSubscription;
       }
       async getUserSubscriptionsByUserId(userId) {
         return await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, userId)).orderBy(desc(userSubscriptions.createdAt));
@@ -1528,9 +1538,11 @@ var init_db_storage = __esm({
         return result.rowCount > 0;
       }
       async updateRemainingDays(id, remainingDays) {
-        const status = remainingDays <= 0 ? "expired" : "active";
+        const normalizedDays = Math.max(0, Math.floor(remainingDays));
+        const status = normalizedDays <= 0 ? "expired" : "active";
         const result = await db.update(userSubscriptions).set({
-          remainingDays,
+          remainingDays: normalizedDays,
+          endDate: new Date(Date.now() + normalizedDays * 24 * 60 * 60 * 1e3),
           status,
           updatedAt: /* @__PURE__ */ new Date()
         }).where(eq(userSubscriptions.id, id)).returning();
@@ -3305,11 +3317,22 @@ var init_storage = __esm({
       }
       // User Subscriptions
       async getUserSubscription(userId) {
-        const userSub = Array.from(this.userSubscriptions.values()).find((sub) => sub.userId === userId && sub.status === "active");
+        const userSub = Array.from(this.userSubscriptions.values()).filter((sub) => sub.userId === userId).sort((a, b) => (b.endDate?.getTime() || 0) - (a.endDate?.getTime() || 0))[0];
         if (!userSub) return void 0;
+        const remainingDays = Math.max(0, Math.ceil((userSub.endDate.getTime() - Date.now()) / (24 * 60 * 60 * 1e3)));
+        const status = remainingDays > 0 ? "active" : "expired";
+        const currentSubscription = userSub.remainingDays === remainingDays && userSub.status === status ? userSub : {
+          ...userSub,
+          remainingDays,
+          status,
+          updatedAt: /* @__PURE__ */ new Date()
+        };
+        if (currentSubscription !== userSub) {
+          this.userSubscriptions.set(userSub.id, currentSubscription);
+        }
         const subscription = this.subscriptions.get(userSub.subscriptionId);
         return {
-          ...userSub,
+          ...currentSubscription,
           subscriptionName: subscription?.name,
           subscriptionDescription: subscription?.description
         };
@@ -3355,10 +3378,12 @@ var init_storage = __esm({
       async updateRemainingDays(id, remainingDays) {
         const userSubscription = this.userSubscriptions.get(id);
         if (!userSubscription) return void 0;
-        const status = remainingDays <= 0 ? "expired" : "active";
+        const normalizedDays = Math.max(0, Math.floor(remainingDays));
+        const status = normalizedDays <= 0 ? "expired" : "active";
         const updatedUserSubscription = {
           ...userSubscription,
-          remainingDays,
+          remainingDays: normalizedDays,
+          endDate: new Date(Date.now() + normalizedDays * 24 * 60 * 60 * 1e3),
           status,
           updatedAt: /* @__PURE__ */ new Date()
         };
@@ -8750,6 +8775,19 @@ var authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: "\u06A9\u0627\u0631\u0628\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
     }
     req.user = user;
+    if (user.role === "user_level_1") {
+      const isTicketRoute = req.path === "/api/tickets" || req.path.startsWith("/api/tickets/") || req.path === "/api/my-tickets";
+      const isSubscriptionRoute = req.path === "/api/auth/me" || req.path.startsWith("/api/user-subscriptions");
+      if (!isTicketRoute && !isSubscriptionRoute) {
+        const subscription = await storage.getUserSubscription(user.id);
+        if (!subscription || subscription.status !== "active" || subscription.remainingDays <= 0) {
+          return res.status(402).json({
+            message: "\u0627\u0634\u062A\u0631\u0627\u06A9 \u0634\u0645\u0627 \u0628\u0647 \u067E\u0627\u06CC\u0627\u0646 \u0631\u0633\u06CC\u062F\u0647 \u0627\u0633\u062A. \u0628\u0631\u0627\u06CC \u0627\u0633\u062A\u0641\u0627\u062F\u0647 \u0627\u0632 \u0627\u0645\u06A9\u0627\u0646\u0627\u062A\u060C \u0627\u0634\u062A\u0631\u0627\u06A9 \u062E\u0648\u062F \u0631\u0627 \u062A\u0645\u062F\u06CC\u062F \u06A9\u0646\u06CC\u062F.",
+            code: "SUBSCRIPTION_EXPIRED"
+          });
+        }
+      }
+    }
     next();
   } catch (error) {
     return res.status(403).json({ message: "\u062A\u0648\u06A9\u0646 \u0646\u0627\u0645\u0639\u062A\u0628\u0631 \u0627\u0633\u062A" });

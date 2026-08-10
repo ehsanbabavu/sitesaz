@@ -117,6 +117,23 @@ export function AppSidebar() {
   });
   const isSubscriptionPluginEnabled = subscriptionPluginData?.isEnabled ?? true;
 
+  const { data: userSubscription } = useQuery<{
+    status: string;
+    remainingDays: number;
+  } | null>({
+    queryKey: ['/api/user-subscriptions/me'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-subscriptions/me');
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!user && user.role === "user_level_1",
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+  const hasActiveLevel1Subscription = user?.role !== "user_level_1"
+    || (userSubscription?.status === "active" && userSubscription.remainingDays > 0);
+
   const { data: internalChatsPluginData } = useQuery<{ isEnabled: boolean }>({
     queryKey: ['/api/plugins/internal-chats/status'],
     queryFn: async () => {
@@ -319,7 +336,8 @@ export function AppSidebar() {
         <SidebarMenu className="space-y-1">
           {user?.role !== "admin" && userMenuItems.map(renderMenuItem)}
 
-          {user?.role === "user_level_1" && level2MenuItems.filter(item => !["/products", "/add-product", "/send-ticket"].includes(item.path)).map(renderMenuItem)}
+           {user?.role === "user_level_1" && hasActiveLevel1Subscription
+             && level2MenuItems.filter(item => !["/products", "/add-product", "/send-ticket"].includes(item.path)).map(renderMenuItem)}
 
           {user?.role === "user_level_2" && level2MenuItems.map(renderMenuItem)}
 
@@ -347,10 +365,9 @@ export function AppSidebar() {
             </>
           )}
 
-          {user?.role === "user_level_1" && (
+           {user?.role === "user_level_1" && (
             <>
               {renderCollapsibleMenu("تیکت‌ها", ticketItems, isTicketsOpen, setIsTicketsOpen)}
-              {/* بخش فروشگاه حذف شد */}
             </>
           )}
         </SidebarMenu>

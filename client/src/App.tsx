@@ -55,6 +55,10 @@ import EmailInbox from "@/pages/email-inbox";
 import SendEmailPage from "@/pages/send-email";
 import SentMessages from "@/pages/sent-messages";
 import EmailSettings from "@/pages/email-settings";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Ticket, Send, Clock } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 interface MaintenanceStatus {
   isEnabled: boolean;
@@ -80,6 +84,84 @@ function MaintenanceCheck({ children, userRole }: { children: React.ReactNode; u
   return <>{children}</>;
 }
 
+function ExpiredSubscriptionPage() {
+  return (
+    <DashboardLayout title="اشتراک منقضی شده">
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Card className="w-full max-w-lg border-amber-200 dark:border-amber-900">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-3 rounded-full bg-amber-100 p-3 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+              <Clock className="h-8 w-8" />
+            </div>
+            <CardTitle>اشتراک شما به پایان رسیده است</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 text-center">
+            <p className="text-muted-foreground">
+              برای فعال شدن دوباره امکانات سامانه، لطفاً از طریق تیکت با پشتیبانی تماس بگیرید.
+              بخش تیکت‌ها همچنان برای شما فعال است.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Button asChild>
+                <Link href="/send-ticket">
+                  <Send className="ml-2 h-4 w-4" />
+                  ارسال تیکت
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/my-tickets">
+                  <Ticket className="ml-2 h-4 w-4" />
+                  تیکت‌های من
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function SubscriptionGate({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const [location] = useLocation();
+  const canUseTickets = location === "/my-tickets"
+    || location === "/send-ticket"
+    || location.startsWith("/my-tickets/")
+    || location.startsWith("/send-ticket/");
+
+  const { data: subscription, isLoading } = useQuery<{
+    status: string;
+    remainingDays: number;
+  } | null>({
+    queryKey: ["/api/user-subscriptions/me"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/user-subscriptions/me", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!user && user.role === "user_level_1",
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+
+  if (user?.role !== "user_level_1" || canUseTickets) {
+    return <>{children}</>;
+  }
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">در حال بررسی اشتراک...</div>;
+  }
+
+  if (!subscription || subscription.status !== "active" || subscription.remainingDays <= 0) {
+    return <ExpiredSubscriptionPage />;
+  }
+
+  return <>{children}</>;
+}
+
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
   
@@ -95,7 +177,9 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   
   return (
     <MaintenanceCheck userRole={user.role}>
-      <Component />
+      <SubscriptionGate>
+        <Component />
+      </SubscriptionGate>
     </MaintenanceCheck>
   );
 }
@@ -119,7 +203,11 @@ function AdminRoute({ component: Component }: { component: React.ComponentType }
     </div>;
   }
   
-  return <Component />;
+  return (
+    <SubscriptionGate>
+      <Component />
+    </SubscriptionGate>
+  );
 }
 
 function PluginAwareAdminRoute({ component: Component, pluginName }: { component: React.ComponentType; pluginName: string }) {
@@ -159,7 +247,11 @@ function PluginAwareAdminRoute({ component: Component, pluginName }: { component
     </div>;
   }
   
-  return <Component />;
+  return (
+    <SubscriptionGate>
+      <Component />
+    </SubscriptionGate>
+  );
 }
 
 function PluginGatedRoute({ children, pluginName }: { children: React.ReactNode; pluginName: string }) {
@@ -215,7 +307,11 @@ function AdminOrLevel1Route({ component: Component }: { component: React.Compone
     </div>;
   }
   
-  return <Component />;
+  return (
+    <SubscriptionGate>
+      <Component />
+    </SubscriptionGate>
+  );
 }
 
 function Level1Route({ component: Component }: { component: React.ComponentType }) {

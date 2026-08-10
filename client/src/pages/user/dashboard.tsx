@@ -57,6 +57,7 @@ export default function UserDashboard() {
       
       return response.json();
     },
+    refetchInterval: 60000,
   });
 
   // Get user's tickets

@@ -878,14 +878,29 @@ export class DbStorage implements IStorage {
     })
     .from(userSubscriptions)
     .innerJoin(subscriptions, eq(userSubscriptions.subscriptionId, subscriptions.id))
-    .where(and(
-      eq(userSubscriptions.userId, userId),
-      eq(userSubscriptions.status, 'active'),
-      gte(userSubscriptions.endDate, new Date())
-    ))
+    .where(eq(userSubscriptions.userId, userId))
     .orderBy(desc(userSubscriptions.endDate))
     .limit(1);
-    return result[0];
+    const userSubscription = result[0];
+    if (!userSubscription) return undefined;
+
+    const remainingDays = Math.max(0, Math.ceil((userSubscription.endDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+    const status = remainingDays > 0 ? 'active' : 'expired';
+    if (userSubscription.remainingDays !== remainingDays || userSubscription.status !== status) {
+      const updated = await db.update(userSubscriptions)
+        .set({ remainingDays, status, updatedAt: new Date() })
+        .where(eq(userSubscriptions.id, userSubscription.id))
+        .returning();
+      if (updated[0]) {
+        return {
+          ...updated[0],
+          subscriptionName: userSubscription.subscriptionName,
+          subscriptionDescription: userSubscription.subscriptionDescription,
+        };
+      }
+    }
+
+    return userSubscription;
   }
 
   async getUserSubscriptionsByUserId(userId: string): Promise<UserSubscription[]> {
@@ -922,10 +937,12 @@ export class DbStorage implements IStorage {
   }
 
   async updateRemainingDays(id: string, remainingDays: number): Promise<UserSubscription | undefined> {
-    const status = remainingDays <= 0 ? 'expired' : 'active';
+    const normalizedDays = Math.max(0, Math.floor(remainingDays));
+    const status = normalizedDays <= 0 ? 'expired' : 'active';
     const result = await db.update(userSubscriptions)
       .set({ 
-        remainingDays, 
+        remainingDays: normalizedDays,
+        endDate: new Date(Date.now() + normalizedDays * 24 * 60 * 60 * 1000),
         status,
         updatedAt: new Date()
       })

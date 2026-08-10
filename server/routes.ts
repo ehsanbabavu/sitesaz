@@ -172,6 +172,27 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunc
       return res.status(401).json({ message: "کاربر یافت نشد" });
     }
     req.user = user;
+
+    // A level 1 user's subscription is checked server-side on every request.
+    // Tickets and subscription renewal remain available after expiry.
+    if (user.role === "user_level_1") {
+      const isTicketRoute = req.path === "/api/tickets"
+        || req.path.startsWith("/api/tickets/")
+        || req.path === "/api/my-tickets";
+      const isSubscriptionRoute = req.path === "/api/auth/me"
+        || req.path.startsWith("/api/user-subscriptions");
+
+      if (!isTicketRoute && !isSubscriptionRoute) {
+        const subscription = await storage.getUserSubscription(user.id);
+        if (!subscription || subscription.status !== "active" || subscription.remainingDays <= 0) {
+          return res.status(402).json({
+            message: "اشتراک شما به پایان رسیده است. برای استفاده از امکانات، اشتراک خود را تمدید کنید.",
+            code: "SUBSCRIPTION_EXPIRED",
+          });
+        }
+      }
+    }
+
     next();
   } catch (error) {
     return res.status(403).json({ message: "توکن نامعتبر است" });
