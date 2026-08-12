@@ -2421,7 +2421,12 @@ var init_db_storage = __esm({
       }
       async getAllGuestChatSessions() {
         try {
-          return await db.select().from(guestChatSessions).orderBy(desc(guestChatSessions.lastMessageAt));
+          return await db.select().from(guestChatSessions).where(sql2`exists (
+          select 1
+          from ${guestChatMessages}
+          where ${guestChatMessages.sessionId} = ${guestChatSessions.id}
+            and ${guestChatMessages.sender} = 'guest'
+        )`).orderBy(desc(guestChatSessions.lastMessageAt));
         } catch (error) {
           console.error("Error getting all guest chat sessions:", error);
           return [];
@@ -2429,7 +2434,15 @@ var init_db_storage = __esm({
       }
       async getActiveGuestChatSessions() {
         try {
-          return await db.select().from(guestChatSessions).where(eq(guestChatSessions.isActive, true)).orderBy(desc(guestChatSessions.lastMessageAt));
+          return await db.select().from(guestChatSessions).where(and(
+            eq(guestChatSessions.isActive, true),
+            sql2`exists (
+            select 1
+            from ${guestChatMessages}
+            where ${guestChatMessages.sessionId} = ${guestChatSessions.id}
+              and ${guestChatMessages.sender} = 'guest'
+          )`
+          )).orderBy(desc(guestChatSessions.lastMessageAt));
         } catch (error) {
           console.error("Error getting active guest chat sessions:", error);
           return [];
@@ -2498,7 +2511,15 @@ var init_db_storage = __esm({
       }
       async getTotalUnreadGuestChats() {
         try {
-          const result = await db.select({ total: sql2`cast(sum(${guestChatSessions.unreadByAdmin}) as integer)` }).from(guestChatSessions).where(eq(guestChatSessions.isActive, true));
+          const result = await db.select({ total: sql2`cast(sum(${guestChatSessions.unreadByAdmin}) as integer)` }).from(guestChatSessions).where(and(
+            eq(guestChatSessions.isActive, true),
+            sql2`exists (
+            select 1
+            from ${guestChatMessages}
+            where ${guestChatMessages.sessionId} = ${guestChatSessions.id}
+              and ${guestChatMessages.sender} = 'guest'
+          )`
+          ));
           return result[0]?.total || 0;
         } catch (error) {
           console.error("Error getting total unread guest chats:", error);
@@ -4155,10 +4176,18 @@ var init_storage = __esm({
       async getAllGuestChatSessions() {
         return Array.from(this.guestChatSessions.values()).sort(
           (a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0)
+        ).filter(
+          (session) => Array.from(this.guestChatMessages.values()).some(
+            (message) => message.sessionId === session.id && message.sender === "guest"
+          )
         );
       }
       async getActiveGuestChatSessions() {
-        return Array.from(this.guestChatSessions.values()).filter((s) => s.isActive).sort((a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0));
+        return Array.from(this.guestChatSessions.values()).filter(
+          (s) => s.isActive && Array.from(this.guestChatMessages.values()).some(
+            (message) => message.sessionId === s.id && message.sender === "guest"
+          )
+        ).sort((a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0));
       }
       async updateGuestChatSession(sessionId, updates) {
         const session = this.guestChatSessions.get(sessionId);
@@ -4221,7 +4250,12 @@ var init_storage = __esm({
         let total = 0;
         for (const session of this.guestChatSessions.values()) {
           if (session.isActive) {
-            total += session.unreadByAdmin || 0;
+            const hasGuestMessage = Array.from(this.guestChatMessages.values()).some(
+              (message) => message.sessionId === session.id && message.sender === "guest"
+            );
+            if (hasGuestMessage) {
+              total += session.unreadByAdmin || 0;
+            }
           }
         }
         return total;

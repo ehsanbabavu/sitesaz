@@ -2001,12 +2001,21 @@ export class MemStorage implements IStorage {
   async getAllGuestChatSessions(): Promise<GuestChatSession[]> {
     return Array.from(this.guestChatSessions.values()).sort((a, b) => 
       (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0)
+    ).filter(session =>
+      Array.from(this.guestChatMessages.values()).some(
+        message => message.sessionId === session.id && message.sender === "guest"
+      )
     );
   }
 
   async getActiveGuestChatSessions(): Promise<GuestChatSession[]> {
     return Array.from(this.guestChatSessions.values())
-      .filter(s => s.isActive)
+      .filter(s =>
+        s.isActive &&
+        Array.from(this.guestChatMessages.values()).some(
+          message => message.sessionId === s.id && message.sender === "guest"
+        )
+      )
       .sort((a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0));
   }
 
@@ -2079,7 +2088,12 @@ export class MemStorage implements IStorage {
     let total = 0;
     for (const session of this.guestChatSessions.values()) {
       if (session.isActive) {
-        total += session.unreadByAdmin || 0;
+        const hasGuestMessage = Array.from(this.guestChatMessages.values()).some(
+          message => message.sessionId === session.id && message.sender === "guest"
+        );
+        if (hasGuestMessage) {
+          total += session.unreadByAdmin || 0;
+        }
       }
     }
     return total;

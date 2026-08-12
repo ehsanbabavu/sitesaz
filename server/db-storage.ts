@@ -2196,6 +2196,12 @@ export class DbStorage implements IStorage {
       return await db
         .select()
         .from(guestChatSessions)
+        .where(sql`exists (
+          select 1
+          from ${guestChatMessages}
+          where ${guestChatMessages.sessionId} = ${guestChatSessions.id}
+            and ${guestChatMessages.sender} = 'guest'
+        )`)
         .orderBy(desc(guestChatSessions.lastMessageAt));
     } catch (error) {
       console.error("Error getting all guest chat sessions:", error);
@@ -2208,7 +2214,15 @@ export class DbStorage implements IStorage {
       return await db
         .select()
         .from(guestChatSessions)
-        .where(eq(guestChatSessions.isActive, true))
+        .where(and(
+          eq(guestChatSessions.isActive, true),
+          sql`exists (
+            select 1
+            from ${guestChatMessages}
+            where ${guestChatMessages.sessionId} = ${guestChatSessions.id}
+              and ${guestChatMessages.sender} = 'guest'
+          )`
+        ))
         .orderBy(desc(guestChatSessions.lastMessageAt));
     } catch (error) {
       console.error("Error getting active guest chat sessions:", error);
@@ -2319,7 +2333,15 @@ export class DbStorage implements IStorage {
       const result = await db
         .select({ total: sql<number>`cast(sum(${guestChatSessions.unreadByAdmin}) as integer)` })
         .from(guestChatSessions)
-        .where(eq(guestChatSessions.isActive, true));
+        .where(and(
+          eq(guestChatSessions.isActive, true),
+          sql`exists (
+            select 1
+            from ${guestChatMessages}
+            where ${guestChatMessages.sessionId} = ${guestChatSessions.id}
+              and ${guestChatMessages.sender} = 'guest'
+          )`
+        ));
       
       return result[0]?.total || 0;
     } catch (error) {
